@@ -9,25 +9,10 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract DeployScript is Script {
     GameFactory public factory;
     
-    // Zypher Verifier addresses - MUST be updated for Lisk Sepolia
-    // These are NOT in your codebase - they're external Zypher contracts
-    address public revealVerifier;
-    address public shuffleVerifier;
+    // RevealVerifier already deployed on Lisk Sepolia
+    address public constant revealVerifier = 0x49cFFa95ffB77d398222393E3f0C4bFb5D996321;
 
-    function setUp() public {
-        // Check if verifiers are provided via env, otherwise use placeholders
-        try vm.envAddress("REVEAL_VERIFIER_ADDRESS") returns (address addr) {
-            revealVerifier = addr;
-        } catch {
-            revealVerifier = address(0); // Will need manual update
-        }
-        
-        try vm.envAddress("SHUFFLE_VERIFIER_ADDRESS") returns (address addr) {
-            shuffleVerifier = addr;
-        } catch {
-            shuffleVerifier = address(0); // Will need manual update
-        }
-    }
+    function setUp() public {}
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -67,26 +52,25 @@ contract DeployScript is Script {
         console.log("deployed and linked by Forge. Check transaction logs for addresses.");
         console.log("");
         console.log("========================================");
-        console.log("NEXT STEPS - IMPORTANT!");
+        console.log("SECURITY NOTE");
         console.log("========================================");
-        console.log("1. Verify contracts on Blockscout");
+        console.log("RevealVerifier:     ", revealVerifier);
+        console.log("ShuffleVerifier:     OFF-CHAIN ONLY");
+        console.log("");
+        console.log("Shuffle verification is done client-side due to");
+        console.log("Lisk Sepolia's 24KB contract size limit.");
+        console.log("");
+        console.log("- Shuffle: Client-side proof generation");
+        console.log("- Reveal: On-chain verification (trustless)");
+        console.log("========================================");
+        console.log("NEXT STEPS");
+        console.log("========================================");
+        console.log("1. Verify GameFactory on Blockscout:");
         console.log("   https://sepolia-blockscout.lisk.com\n");
-        console.log("2. Get Zypher Verifier addresses:");
-        if (revealVerifier == address(0)) {
-            console.log("   - RevealVerifier:  NOT SET (REQUIRED!)");
-        } else {
-            console.log("   - RevealVerifier: ", revealVerifier);
-        }
-        if (shuffleVerifier == address(0)) {
-            console.log("   - ShuffleVerifier: NOT SET (REQUIRED!)");
-        } else {
-            console.log("   - ShuffleVerifier:", shuffleVerifier);
-        }
-        console.log("\n   Contact: https://zypher.network or check:");
-        console.log("   https://github.com/zypher-game/contracts\n");
-        console.log("3. Update apps/www/src/components/create-game.tsx");
-        console.log("   Lines 43-44 with verifier addresses\n");
-        console.log("4. Test game creation on frontend");
+        console.log("2. Frontend is already configured:");
+        console.log("   - config.json updated automatically");
+        console.log("   - RevealVerifier hardcoded\n");
+        console.log("3. Start frontend: cd apps/www && pnpm dev");
         console.log("========================================\n");
     }
 

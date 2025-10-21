@@ -13,22 +13,22 @@ contract GameFactory {
 
     constructor() {}
 
-    function createGame(bytes32 salt, address _revealVerifier, address _shuffleVerifier, Player memory _initialPlayer)
+    function createGame(bytes32 salt, address _revealVerifier, Player memory _initialPlayer)
         external
         returns (address)
     {
-        bytes memory bytecode = getGameByteCode(_revealVerifier, _shuffleVerifier, _initialPlayer);
+        bytes memory bytecode = getGameByteCode(_revealVerifier, _initialPlayer);
         address addr = Create2.deploy(0, salt, bytecode);
         _games[_nextGameId] = addr;
         _nextGameId++;
         return addr;
     }
 
-    function getGameByteCode(address _revealVerifier, address _shuffleVerifier, Player memory _initialPlayer)
+    function getGameByteCode(address _revealVerifier, Player memory _initialPlayer)
         public
         pure
         returns (bytes memory)
     {
-        return abi.encodePacked(type(Game).creationCode, abi.encode(_revealVerifier, _shuffleVerifier, _initialPlayer));
+        return abi.encodePacked(type(Game).creationCode, abi.encode(_revealVerifier, _initialPlayer));
     }
 }

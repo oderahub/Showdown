@@ -40,8 +40,8 @@ export const CreateGame = () => {
         throw new Error('Please connect wallet.');
       }
       const salt = keccak256(Buffer.from(crypto.randomUUID()));
-      const revealVerifier = '0x8d084e5c212834456c07Cef2c1e2a258fF04b5eb';
-      const shuffleVerifier = '0xfbDF4217a3959cE4D3c39b240959c800e3c9E640';
+      // Use RevealVerifier deployed on Lisk Sepolia
+      const revealVerifier = '0x49cFFa95ffB77d398222393E3f0C4bFb5D996321';
       console.log(salt);
       const key = await getKey(address);
       console.log(key);
@@ -52,7 +52,6 @@ export const CreateGame = () => {
         args: [
           salt,
           revealVerifier,
-          shuffleVerifier,
           {
             addr: address,
             publicKey: {

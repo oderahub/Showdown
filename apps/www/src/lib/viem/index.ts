@@ -7,7 +7,7 @@ import {
   createStorage,
   http,
 } from 'wagmi';
-import { walletConnect } from 'wagmi/connectors';
+import { injected, walletConnect } from 'wagmi/connectors';
 import { env } from '~/env';
 
 import { GAME_ABI, GAME_FACTORY_ABI } from './abi';
@@ -15,10 +15,25 @@ import { GAME_ABI, GAME_FACTORY_ABI } from './abi';
 export const projectId = env.NEXT_PUBLIC_WALLETCONNECT_ID;
 
 const metadata = {
-  name: 'Web3 Turbo Starter',
-  description: 'Web3 starter kit with turborepo, wagmi, and Next.js',
-  url: 'http://localhost:3000',
+  name: 'Texas Hold\'em ZK Poker',
+  description: 'Play poker with zero-knowledge shuffles on Lisk Sepolia',
+  url: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/37784886'],
+};
+
+// Only initialize WalletConnect on client side to avoid SSR indexedDB errors
+const getConnectors = () => {
+  const connectors = [];
+
+  // Always available: injected wallet (MetaMask, etc.)
+  connectors.push(injected({ shimDisconnect: true }));
+
+  // Only add WalletConnect on client side
+  if (typeof window !== 'undefined') {
+    connectors.push(walletConnect({ projectId, metadata, showQrModal: false }));
+  }
+
+  return connectors;
 };
 
 export const wagmiConfig: Config = createConfig({
@@ -27,7 +42,7 @@ export const wagmiConfig: Config = createConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
-  connectors: [walletConnect({ projectId, metadata, showQrModal: false })],
+  connectors: getConnectors(),
   transports: {
     [liskSepolia.id]: http(),
   },

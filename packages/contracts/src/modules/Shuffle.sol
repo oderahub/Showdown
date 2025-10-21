@@ -5,7 +5,7 @@ pragma solidity ^0.8.26;
 import {Player} from "../interfaces/IGame.sol";
 import {IShuffle} from "../interfaces/IShuffle.sol";
 
-import {ZgRevealVerifier, ZgShuffleVerifier, MaskedCard, Point} from "../secret-engine/Verifiers.sol";
+import {ZgRevealVerifier, MaskedCard, Point} from "../secret-engine/Verifiers.sol";
 
 contract Shuffle is IShuffle {
     struct RevealToken {
@@ -14,7 +14,7 @@ contract Shuffle is IShuffle {
     }
 
     ZgRevealVerifier public revealVerifier;
-    ZgShuffleVerifier public shuffleVerifier;
+    // Note: Shuffle verification done off-chain due to contract size constraints
 
     Point public gameKey;
 

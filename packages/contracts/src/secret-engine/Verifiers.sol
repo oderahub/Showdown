@@ -13,12 +13,13 @@ struct Point {
     uint256 y;
 }
 
-interface ZgShuffleVerifier {
-    function verifyShuffle(bytes calldata proof, uint256[] calldata inputs, uint256[] calldata publicKeyCommitment)
-        external
-        view
-        returns (bool);
-}
+// ZgShuffleVerifier not used - shuffle verification done off-chain for Lisk compatibility
+// interface ZgShuffleVerifier {
+//     function verifyShuffle(bytes calldata proof, uint256[] calldata inputs, uint256[] calldata publicKeyCommitment)
+//         external
+//         view
+//         returns (bool);
+// }
 
 interface ZgRevealVerifier {
     function aggregateKeys(Point[] memory publicKeys) external view returns (Point memory gameKey);

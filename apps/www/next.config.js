@@ -26,7 +26,17 @@ function patchWasmModuleImport(isServer, config) {
 const config = {
   webpack: (config, { isServer }) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
-    config.resolve.fallback = { fs: false , path: false, util: false };
+    
+    // Enhanced fallback configuration to handle both browser and SSR issues
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      util: false,
+      // Fix for MetaMask SDK React Native dependency
+      '@react-native-async-storage/async-storage': false,
+    };
+    
     patchWasmModuleImport(isServer, config);
 
     return config;

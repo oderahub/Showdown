@@ -1,11 +1,28 @@
 <p align="center">
 <img src="./assets/logo-text.png" alt=""  width="400px"/></p>
 
-Texas Hold'em is a on-chain implementation of a popular poker game, Texas Hold'em. The game is built using Zypher Network's ZK Shuffle SDK, where each player take turns to shuffle the deck and deal the cards. The game is deployed on opBNB Testnet.
+Texas Hold'em is an on-chain implementation of the popular poker game, Texas Hold'em. The game is built using Zypher Network's ZK Shuffle SDK, where each player takes turns to shuffle the deck and deal the cards. **Deployed on Lisk Sepolia.**
 
-- Game Factory Address: [0x66dab6ec6bb97d5adf6fabfe16193f2a28d1ed09](https://opbnb-testnet.bscscan.com/address/0x66dab6ec6bb97d5adf6fabfe16193f2a28d1ed09)
-- Texas Poker Library: [0xd24176eCCC9AB8e9f3c40715882Fc8eF784d5C02](https://opbnb-testnet.bscscan.com/address/0xd24176eCCC9AB8e9f3c40715882Fc8eF784d5C02)
-- QuickSort Library: [0xc65D06e75b1637D4151D3FCa15AC0079a4101834](https://opbnb-testnet.bscscan.com/address/0xc65D06e75b1637D4151D3FCa15AC0079a4101834)
+### 📜 Deployed Contracts (Lisk Sepolia)
+
+- **Game Factory**: [0xB22AEba36bdB2C76875E6DfccB1168CE75f5E9F2](https://sepolia-blockscout.lisk.com/address/0xB22AEba36bdB2C76875E6DfccB1168CE75f5E9F2)
+- **Reveal Verifier**: [0x49cFFa95ffB77d398222393E3f0C4bFb5D996321](https://sepolia-blockscout.lisk.com/address/0x49cFFa95ffB77d398222393E3f0C4bFb5D996321)
+- **Texas Poker Library**: [0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791](https://sepolia-blockscout.lisk.com/address/0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791)
+- **QuickSort Library**: [0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d](https://sepolia-blockscout.lisk.com/address/0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d)
+
+### 🔐 Security Model
+
+**Trustless Components:**
+- ✅ Card revealing via ZK proofs (on-chain verification)
+- ✅ Hand evaluation (TexasPoker library)
+- ✅ Pot distribution (immutable logic)
+
+**Trust-Based Component:**
+- ⚠️ **Shuffle verification**: Client-side only due to Lisk Sepolia's 24KB contract size limit
+- Players generate valid ZK shuffle proofs off-chain
+- Suitable for demos and casual play
+
+> **Note**: For production with real money, deploy on chains with higher contract size limits (e.g., Base, Optimism) for full on-chain shuffle verification.
 
 ## How it works 🛠️
 

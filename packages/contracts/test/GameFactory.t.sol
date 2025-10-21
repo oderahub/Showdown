@@ -13,8 +13,8 @@ contract GameFactoryTest is Test {
 
     GameFactory public factory;
 
-    address revealVerifier = address(0x8d084e5c212834456c07Cef2c1e2a258fF04b5eb);
-    address shuffleVerifier = address(0xfbDF4217a3959cE4D3c39b240959c800e3c9E640);
+    // RevealVerifier deployed on Lisk Sepolia
+    address revealVerifier = address(0x49cFFa95ffB77d398222393E3f0C4bFb5D996321);
 
     function setUp() public virtual {
         alice = vm.createWallet("alice");
@@ -28,7 +28,7 @@ contract GameFactoryTest is Test {
 
         bytes32 salt = bytes32(0);
 
-        address game = factory.createGame(salt, revealVerifier, shuffleVerifier, alicePlayer);
+        address game = factory.createGame(salt, revealVerifier, alicePlayer);
         console.log("Game Address: ", game);
     }
 }

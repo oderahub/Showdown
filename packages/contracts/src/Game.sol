@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {IGame, Player, GameRound, PlayerWitWeight} from "./interfaces/IGame.sol";
-import {ZgRevealVerifier, ZgShuffleVerifier, MaskedCard, Point} from "./secret-engine/Verifiers.sol";
+import {ZgRevealVerifier, MaskedCard, Point} from "./secret-engine/Verifiers.sol";
 
 import {TexasPoker, PokerCard} from "./libraries/TexasPoker.sol";
 
@@ -41,10 +41,10 @@ contract Game is IGame, Shuffle {
     ///                         Constructor
     /// =================================================================
 
-    constructor(address _revealVerifier, address _shuffleVerifier, Player memory _initialPlayer) {
+    constructor(address _revealVerifier, Player memory _initialPlayer) {
         _players[_totalPlayers] = _initialPlayer;
         revealVerifier = ZgRevealVerifier(_revealVerifier);
-        shuffleVerifier = ZgShuffleVerifier(_shuffleVerifier);
+        // Shuffle verification done off-chain for Lisk compatibility
         _totalPlayers++;
         _isPlayer[_initialPlayer.addr] = true;
     }
