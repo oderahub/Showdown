@@ -3,5 +3,9 @@
 import React from 'react';
 
 export const ConnectButton = () => {
-  return <w3m-button balance='hide' />;
+  return (
+    <div className="brightness-75">
+      <w3m-button balance='hide' />
+    </div>
+  );
 };
