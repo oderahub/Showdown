@@ -44,8 +44,17 @@ export const wagmiConfig: Config = createConfig({
   }),
   connectors: getConnectors(),
   transports: {
-    [liskSepolia.id]: http(),
+    [liskSepolia.id]: http('https://rpc.sepolia-api.lisk.com', {
+      batch: false, // Disable all batching for Lisk Sepolia compatibility
+      retryCount: 3,
+      timeout: 30_000,
+    }),
   },
+  batch: {
+    multicall: false, // Disable global multicall batching
+  },
+  // Force all queries to use 'latest' block
+  cacheTime: 0,
 });
 
 export const gameFactoryConfig = {
