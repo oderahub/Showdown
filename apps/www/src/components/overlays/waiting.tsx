@@ -12,12 +12,14 @@ import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 
 export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
-  const { data: totalPlayers, refetch: _refetch } = useReadContract({
+  const { data: totalPlayers, refetch } = useReadContract({
     ...gameConfig,
     address: contractAddress,
     functionName: '_totalPlayers',
     query: {
-      refetchInterval: 3000,
+      refetchInterval: 3000, // Poll every 3 seconds to detect new players
+      gcTime: 0, // Don't cache
+      staleTime: 0, // Always consider data stale
     },
   });
 

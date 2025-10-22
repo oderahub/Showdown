@@ -34,6 +34,8 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
   const { data: res, refetch } = useReadContracts({
     query: {
       refetchInterval: 4000, // Auto-refresh every 4 seconds
+      gcTime: 0, // No caching
+      staleTime: 0, // Always fresh
     },
     contracts: [
       {

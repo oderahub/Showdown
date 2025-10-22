@@ -122,11 +122,15 @@ export const CreateGame = () => {
       console.log('[JoinGame] Transaction confirmed:', receipt);
       toast.success('Game Joined Successfully!', { id });
 
+      // Wait longer for blockchain state to settle
+      console.log('[JoinGame] Waiting for state to update...');
       await new Promise<void>((resolve) => {
-        setTimeout(resolve, 2000);
+        setTimeout(resolve, 4000);
       });
 
-      router.push(`/game/${contractAddress}`);
+      console.log('[JoinGame] Redirecting to game...');
+      // Force a full page reload to ensure fresh state
+      window.location.href = `/game/${contractAddress}`;
     } catch (error) {
       console.error('[JoinGame] Error:', error);
       toast.error(errorHandler(error), { id });

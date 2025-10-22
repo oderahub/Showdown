@@ -29,6 +29,8 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   const { data, refetch } = useReadContracts({
     query: {
       refetchInterval: 4000, // Poll to detect other players shuffling
+      gcTime: 0, // No caching
+      staleTime: 0, // Always fresh
     },
     contracts: [
       {
