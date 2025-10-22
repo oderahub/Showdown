@@ -1,7 +1,5 @@
 'use client';
 
-/* eslint-disable jsx-a11y/label-has-associated-control -- safe  */
-
 /* eslint-disable react/no-unstable-nested-components -- safe  */
 import * as React from 'react';
 import { useImperativeHandle, useRef } from 'react';

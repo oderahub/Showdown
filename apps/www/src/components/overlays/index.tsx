@@ -84,16 +84,16 @@ export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
   const refreshData = async () => {
     await refetch();
+    // Also trigger parent refresh if provided
+    if (refresh) {
+      await refresh();
+    }
   };
 
   if (stage === 'waiting') {
-    return (
-      <WaitingOverlay contractAddress={contractAddress} refresh={refreshData} />
-    );
+    return <WaitingOverlay contractAddress={contractAddress} refresh={refreshData} />;
   } else if (stage === 'shuffle') {
-    return (
-      <ShuffleOverlay contractAddress={contractAddress} refresh={refreshData} />
-    );
+    return <ShuffleOverlay contractAddress={contractAddress} refresh={refreshData} />;
   } else if (stage === 'started') {
     // TODO: Game started overlay
   } else if (stage === 'choose-cards') {
