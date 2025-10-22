@@ -97,7 +97,12 @@ export const CreateGame = () => {
         throw new Error('Invalid game ID.');
       }
       const contractAddress = gameId;
+      console.log('[JoinGame] Player address:', address);
+      console.log('[JoinGame] Contract address:', contractAddress);
+
       const key = await getKey(address);
+      console.log('[JoinGame] Public key generated');
+
       const hash = await writeContractAsync({
         ...gameConfig,
         address: contractAddress,
@@ -111,13 +116,27 @@ export const CreateGame = () => {
             },
           },
         ],
+        gas: 500000n,
       });
-      await waitForTransactionReceipt(wagmiConfig, { hash });
+
+      console.log('[JoinGame] Transaction sent:', hash);
+      toast.loading('Waiting for confirmation...', { id });
+
+      const receipt = await waitForTransactionReceipt(wagmiConfig, {
+        hash,
+        timeout: 60_000,
+      });
+
+      console.log('[JoinGame] Transaction confirmed:', receipt);
       toast.success('Game Joined Successfully!', { id });
+
+      // Small delay to let blockchain state settle
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       router.push(`/game/${contractAddress}`);
     } catch (error) {
-      console.log(error);
-      toast.error(errorHandler(error));
+      console.error('[JoinGame] Error:', error);
+      toast.error(errorHandler(error), { id });
     }
   };
   return (

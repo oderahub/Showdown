@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { errorHandler } from '~/lib/utils';
 import { gameConfig, wagmiConfig } from '~/lib/viem';
@@ -12,7 +12,7 @@ import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 
 export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
-  const { data: totalPlayers } = useReadContract({
+  const { data: totalPlayers, refetch } = useReadContract({
     ...gameConfig,
     address: contractAddress,
     functionName: '_totalPlayers',
@@ -20,6 +20,11 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       refetchInterval: 3000, // Poll every 3 seconds to detect new players
     },
   });
+
+  // Log player count changes
+  useEffect(() => {
+    console.log('[WaitingOverlay] Player count:', totalPlayers, 'Contract:', contractAddress);
+  }, [totalPlayers, contractAddress]);
 
   const { writeContractAsync } = useWriteContract();
 
@@ -85,16 +90,20 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       <div className='flex w-full flex-col gap-4'>
         <div className='text-center font-poker text-4xl'>Waiting Stage</div>
         <div className='text-center font-poker text-2xl'>
-          Total Players: {totalPlayers ?? 0}
+          Total Players: {totalPlayers?.toString() ?? '0'}
+        </div>
+        <div className='text-center text-sm text-neutral-400'>
+          Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
         </div>
         <div className='flex w-full items-center justify-center font-poker text-2xl'>
-          Waiting for other players...
+          {Number(totalPlayers ?? 0) < 2 ? 'Waiting for other players...' : 'Ready to start!'}
         </div>
         <Button
           className='mx-auto w-fit font-poker text-xl'
           onClick={onStartGame}
+          disabled={Number(totalPlayers ?? 0) < 2}
         >
-          Start Game
+          Start Game {Number(totalPlayers ?? 0) >= 2 ? '✓' : `(${totalPlayers ?? 0}/2)`}
         </Button>
       </div>
     </Overlay>
