@@ -158,7 +158,6 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                             </label>
                             <Input
                                 className='rounded-xl border-2 border-yellow-600 bg-neutral-800 text-center text-xl font-bold text-white'
-                                disabled={!isMyTurn}
                                 id='bet-amount'
                                 min='0'
                                 placeholder='0.01'
