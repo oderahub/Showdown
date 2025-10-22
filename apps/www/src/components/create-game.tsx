@@ -40,11 +40,8 @@ export const CreateGame = () => {
         throw new Error('Please connect wallet.');
       }
       const salt = keccak256(Buffer.from(crypto.randomUUID()));
-      // Use RevealVerifier deployed on Lisk Sepolia
       const revealVerifier = '0x49cFFa95ffB77d398222393E3f0C4bFb5D996321';
-      console.log(salt);
       const key = await getKey(address);
-      console.log(key);
 
       const hash = await writeContractAsync({
         ...gameFactoryConfig,
@@ -73,7 +70,7 @@ export const CreateGame = () => {
         functionName: '_games',
         args: [BigInt(Number(gameId) - 1)],
       });
-      console.log(gameAddress);
+
       toast.success('Game Created Successfully!', {
         description: `ID: ${gameAddress}`,
         id,
@@ -92,16 +89,12 @@ export const CreateGame = () => {
       if (!address) {
         throw new Error('Please connect wallet.');
       }
-      const isValidId = isAddress(gameId);
-      if (!isValidId) {
+      if (!isAddress(gameId)) {
         throw new Error('Invalid game ID.');
       }
       const contractAddress = gameId;
-      console.log('[JoinGame] Player address:', address);
-      console.log('[JoinGame] Contract address:', contractAddress);
 
       const key = await getKey(address);
-      console.log('[JoinGame] Public key generated');
 
       const hash = await writeContractAsync({
         ...gameConfig,
@@ -119,7 +112,6 @@ export const CreateGame = () => {
         gas: 500000n,
       });
 
-      console.log('[JoinGame] Transaction sent:', hash);
       toast.loading('Waiting for confirmation...', { id });
 
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
@@ -130,8 +122,9 @@ export const CreateGame = () => {
       console.log('[JoinGame] Transaction confirmed:', receipt);
       toast.success('Game Joined Successfully!', { id });
 
-      // Small delay to let blockchain state settle
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 2000);
+      });
 
       router.push(`/game/${contractAddress}`);
     } catch (error) {
@@ -139,6 +132,7 @@ export const CreateGame = () => {
       toast.error(errorHandler(error), { id });
     }
   };
+
   return (
     <Dialog>
       <DialogTrigger>Create or Join a Game</DialogTrigger>
