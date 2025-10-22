@@ -97,13 +97,21 @@ export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
   if (stage === 'waiting') {
     return <WaitingOverlay contractAddress={contractAddress} refresh={refreshData} />;
-  } else if (stage === 'shuffle') {
+  }
+
+  if (stage === 'shuffle') {
     return <ShuffleOverlay contractAddress={contractAddress} refresh={refreshData} />;
-  } else if (stage === 'started') {
+  }
+
+  if (stage === 'started') {
     return <BettingOverlay contractAddress={contractAddress} refresh={refreshData} />;
-  } else if (stage === 'choose-cards') {
+  }
+
+  if (stage === 'choose-cards') {
     return <ShowdownOverlay contractAddress={contractAddress} refresh={refreshData} />;
-  } else if (stage === 'ended') {
+  }
+
+  if (stage === 'ended') {
     return <EndedOverlay contractAddress={contractAddress} refresh={refreshData} />;
   }
 

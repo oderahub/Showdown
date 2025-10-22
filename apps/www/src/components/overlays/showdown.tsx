@@ -70,12 +70,13 @@ export const ShowdownOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const toggleCard = (cardIndex: number) => {
         if (selectedCards.includes(cardIndex)) {
             setSelectedCards(selectedCards.filter((i) => i !== cardIndex));
+            return;
+        }
+
+        if (selectedCards.length < 3) {
+            setSelectedCards([...selectedCards, cardIndex]);
         } else {
-            if (selectedCards.length < 3) {
-                setSelectedCards([...selectedCards, cardIndex]);
-            } else {
-                toast.warning('You can only select 3 cards');
-            }
+            toast.warning('You can only select 3 cards');
         }
     };
 
@@ -120,22 +121,23 @@ export const ShowdownOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 <div className='flex justify-center gap-3'>
                     {communityCards.map((cardId, index) => (
                         <button
-                            key={index}
-                            onClick={() => toggleCard(index)}
+                            key={`card-${cardId}-${index}`}
+                            type='button'
                             className={`
                 relative transform transition-all duration-200 hover:scale-110
                 ${selectedCards.includes(index) ? 'ring-4 ring-yellow-500 scale-105' : ''}
               `}
+                            onClick={() => toggleCard(index)}
                         >
                             <Image
-                                src={getPokerCardImage(cardId)}
-                                alt={`Card ${index + 1}`}
-                                width={100}
-                                height={140}
+                                alt={`Card ${String(index + 1)}`}
                                 className='rounded-lg shadow-xl'
+                                height={140}
+                                src={getPokerCardImage(cardId)}
+                                width={100}
                             />
                             {selectedCards.includes(index) && (
-                                <div className='absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 font-bold text-black'>
+                                <div className='absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 font-bold text-black'>
                                     {selectedCards.indexOf(index) + 1}
                                 </div>
                             )}
@@ -150,17 +152,17 @@ export const ShowdownOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 <div className='flex justify-center gap-3'>
                     <Button
                         className='font-poker text-lg'
+                        disabled={selectedCards.length === 0}
                         variant='secondary'
                         onClick={() => setSelectedCards([])}
-                        disabled={selectedCards.length === 0}
                     >
                         Clear Selection
                     </Button>
 
                     <Button
                         className='bg-green-600 font-poker text-lg hover:bg-green-700'
-                        onClick={onSubmitCards}
                         disabled={selectedCards.length !== 3}
+                        onClick={onSubmitCards}
                     >
                         Submit Cards
                     </Button>

@@ -41,8 +41,8 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
         ],
     });
 
-    const winnerData = data?.[0]?.result as [string, bigint] | undefined;
-    const winnerAddress = (winnerData?.[0] ?? '') as string;
+    const winnerData = data?.[0]?.result;
+    const winnerAddress = winnerData?.[0] ?? '';
     const winnerWeight = winnerData?.[1] ?? 0n;
     const totalPot = data?.[1]?.result ?? 0n;
     const totalPlayersResult = data?.[2]?.result ?? 0n;
@@ -69,7 +69,7 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
                     </div>
 
                     <div className='text-center text-xl text-neutral-300'>
-                        Winning Hand Strength: <span className='font-bold text-purple-400'>{String(winnerWeight)}</span>
+                        Winning Hand Strength: <span className='font-bold text-purple-400'>{winnerWeight.toString()}</span>
                     </div>
 
                     <div className='border-t border-neutral-600 pt-4'>
@@ -84,7 +84,7 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
                     <div>Pot per Player: {formatEther(totalPot)} ETH</div>
                 </div>
 
-                {isWinner && (
+                {Boolean(isWinner) && (
                     <div className='rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 p-4 text-center'>
                         <div className='font-poker text-2xl text-yellow-400'>
                             Congratulations! 🏆

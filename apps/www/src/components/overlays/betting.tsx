@@ -42,7 +42,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 ...gameConfig,
                 address: contractAddress,
                 functionName: '_bets',
-                args: [address!],
+                args: [address ?? '0x0'],
             },
             {
                 ...gameConfig,
@@ -112,7 +112,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         }
     };
 
-    const onCall = async () => {
+    const onCall = () => {
         if (callAmount === 0n) {
             setBetAmount('0');
             setTimeout(() => void onPlaceBet(), 100);
@@ -146,17 +146,19 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                     {isMyTurn ? (
                         <span className='font-bold text-green-400'>🎯 Your Turn!</span>
                     ) : (
-                        <span>Waiting for: {nextPlayer?.slice(0, 6)}...{nextPlayer?.slice(-4)}</span>
+                        <span>Waiting for: {nextPlayer.slice(0, 6)}...{nextPlayer.slice(-4)}</span>
                     )}
                 </div>
 
-                {isMyTurn && (
+                {Boolean(isMyTurn) && (
                     <>
                         <div className='flex flex-col gap-2'>
-                            <label className='text-center font-poker text-xl text-neutral-300'>
+                            <label htmlFor='bet-amount' className='text-center font-poker text-xl text-neutral-300'>
                                 Bet Amount (ETH)
                             </label>
                             <Input
+                                id='bet-amount'
+                                className='rounded-xl border-2 border-yellow-600 bg-neutral-800 text-center text-xl font-bold text-white'
                                 disabled={!isMyTurn}
                                 min='0'
                                 placeholder='0.01'
@@ -164,7 +166,6 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                                 type='number'
                                 value={betAmount}
                                 onChange={(e) => setBetAmount(e.target.value)}
-                                className='rounded-xl border-2 border-yellow-600 bg-neutral-800 text-center text-xl font-bold text-white'
                             />
                         </div>
 
