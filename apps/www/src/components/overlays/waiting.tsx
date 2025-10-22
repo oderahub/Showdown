@@ -5,7 +5,7 @@ import { gameConfig, wagmiConfig } from '~/lib/viem';
 
 import { waitForTransactionReceipt } from '@wagmi/core';
 import { toast } from 'sonner';
-import { useReadContract, useWriteContract, useChainId } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useChainId } from 'wagmi';
 import type { OverlayProps } from '~/types';
 
 import { Overlay } from '../overlay';
