@@ -8,6 +8,9 @@ import { zeroAddress } from 'viem';
 import { useReadContracts } from 'wagmi';
 import type { OverlayProps } from '~/types';
 
+import { BettingOverlay } from './betting';
+import { EndedOverlay } from './ended';
+import { ShowdownOverlay } from './showdown';
 import { ShuffleOverlay } from './shuffle';
 import { WaitingOverlay } from './waiting';
 
@@ -97,9 +100,11 @@ export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   } else if (stage === 'shuffle') {
     return <ShuffleOverlay contractAddress={contractAddress} refresh={refreshData} />;
   } else if (stage === 'started') {
-    // TODO: Game started overlay
+    return <BettingOverlay contractAddress={contractAddress} refresh={refreshData} />;
   } else if (stage === 'choose-cards') {
-    // TODO: Choose cards overlay
+    return <ShowdownOverlay contractAddress={contractAddress} refresh={refreshData} />;
+  } else if (stage === 'ended') {
+    return <EndedOverlay contractAddress={contractAddress} refresh={refreshData} />;
   }
 
   return null;
