@@ -26,18 +26,53 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   const onStartGame = async () => {
     const id = toast.loading('Starting game...');
     try {
+      // Validate minimum players
+      const currentPlayers = Number(totalPlayers ?? 0);
+      if (currentPlayers < 2) {
+        throw new Error('Need at least 2 players to start the game');
+      }
+
+      console.log('[StartGame] Starting game with', currentPlayers, 'players');
+      console.log('[StartGame] Contract address:', contractAddress);
+
       const hash = await writeContractAsync({
         ...gameConfig,
         address: contractAddress,
         functionName: 'startGame',
+        gas: 500000n, // Set explicit gas limit to avoid estimation errors
       });
-      await waitForTransactionReceipt(wagmiConfig, { hash });
+
+      console.log('[StartGame] Transaction sent:', hash);
+      toast.loading('Waiting for confirmation...', { id });
+
+      const receipt = await waitForTransactionReceipt(wagmiConfig, {
+        hash,
+        timeout: 60_000, // 60 second timeout
+      });
+
+      console.log('[StartGame] Transaction confirmed:', receipt);
       toast.success('Game Started Successfully!', { id });
+
+      // Refresh state
       if (refresh) {
         await refresh();
       }
-    } catch (error) {
-      toast.error(errorHandler(error), { id });
+    } catch (error: any) {
+      console.error('[StartGame] Error:', error);
+      console.error('[StartGame] Error details:', {
+        message: error?.message,
+        code: error?.code,
+        data: error?.data,
+        cause: error?.cause,
+      });
+
+      // Better error messages
+      let errorMessage = errorHandler(error);
+      if (error?.message?.includes('400')) {
+        errorMessage = 'RPC error: Please try again or check if all players have shuffled';
+      }
+
+      toast.error(errorMessage, { id });
     }
   };
 

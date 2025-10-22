@@ -46,8 +46,14 @@ export const wagmiConfig: Config = createConfig({
   transports: {
     [liskSepolia.id]: http('https://rpc.sepolia-api.lisk.com', {
       batch: false, // Disable all batching for Lisk Sepolia compatibility
-      retryCount: 3,
-      timeout: 30_000,
+      retryCount: 5,
+      retryDelay: 1000,
+      timeout: 60_000, // Increase timeout to 60s
+      fetchOptions: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
     }),
   },
   batch: {
