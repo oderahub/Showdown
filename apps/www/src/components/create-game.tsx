@@ -34,8 +34,8 @@ export const CreateGame = () => {
 
   const [gameId, setGameId] = useState<string>('');
 
-  // Strict wallet connection check
-  const walletConnected = status === 'connected' && !!address && chainId === 4202;
+  // Strict wallet connection check: must be connected AND on Lisk Sepolia
+  const walletConnected = status === 'connected' && Boolean(address) && chainId === 4202;
 
   const onCreate = async () => {
     if (!walletConnected) {
@@ -46,9 +46,7 @@ export const CreateGame = () => {
     const id = toast.loading('Creating Game...');
     try {
       console.log('[CreateGame] Wallet:', address, 'Chain:', chainId);
-      if (!address) {
-        throw new Error('Please connect wallet.');
-      }
+      console.log('[CreateGame] GameFactory:', gameFactoryConfig.address);
       const salt = keccak256(Buffer.from(crypto.randomUUID()));
       const revealVerifier = '0x49cFFa95ffB77d398222393E3f0C4bFb5D996321';
       const key = await getKey(address);
@@ -112,7 +110,7 @@ export const CreateGame = () => {
 
     const id = toast.loading('Joining Game...');
     try {
-      const contractAddress = gameId as `0x${string}`;
+      const contractAddress = gameId;
       console.log('[JoinGame] Wallet:', address, 'Chain:', chainId);
       console.log('[JoinGame] Contract:', contractAddress);
 
@@ -222,8 +220,8 @@ export const CreateGame = () => {
             <div className='flex flex-row items-center gap-2'>
               <Input
                 className='w-[24rem] translate-x-12 !rounded-3xl border-none outline-none'
+                disabled={!walletConnected}
                 placeholder='Enter Game ID'
-                disabled={!address}
                 value={gameId}
                 onChange={(e) => setGameId(e.target.value)}
               />

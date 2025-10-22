@@ -102,7 +102,8 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
   const totalPlayersCount = Number(totalPlayers ?? 0);
   const totalPlayersText = totalPlayers?.toString() ?? '0';
-  const startButtonLabelSuffix = `Start Game ${Number(totalPlayers ?? 0) >= 2 ? '✓' : `(${Number(totalPlayers ?? 0)}/2)`}`;
+  const startButtonLabelSuffix =
+    totalPlayersCount >= 2 ? '✓' : `(${String(totalPlayersCount)}/2)`;
 
   return (
     <Overlay>
@@ -118,7 +119,7 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
           You: {address?.slice(0, 6)}...{address?.slice(-4)} | Chain: {chainId}
         </div>
         <div className='flex w-full items-center justify-center font-poker text-2xl'>
-          {Number(totalPlayers ?? 0) < 2
+          {totalPlayersCount < 2
             ? 'Waiting for other players...'
             : 'Ready to start!'}
         </div>
@@ -131,7 +132,7 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         </Button>
         <Button
           className='mx-auto w-fit font-poker text-xl'
-          disabled={Number(totalPlayers ?? 0) < 2}
+          disabled={totalPlayersCount < 2}
           onClick={onStartGame}
         >
           Start Game {startButtonLabelSuffix}
