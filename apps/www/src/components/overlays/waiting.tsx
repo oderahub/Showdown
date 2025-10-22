@@ -16,6 +16,9 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     ...gameConfig,
     address: contractAddress,
     functionName: '_totalPlayers',
+    query: {
+      refetchInterval: 3000, // Poll every 3 seconds to detect new players
+    },
   });
 
   const { writeContractAsync } = useWriteContract();

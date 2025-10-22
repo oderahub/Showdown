@@ -32,6 +32,9 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
   const { address } = useAccount();
 
   const { data: res, refetch } = useReadContracts({
+    query: {
+      refetchInterval: 4000, // Auto-refresh every 4 seconds
+    },
     contracts: [
       {
         ...gameConfig,
@@ -147,7 +150,7 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
 
   return (
     <div className=''>
-      <GameOverlay contractAddress={contractAddress} />
+      <GameOverlay contractAddress={contractAddress} refresh={refresh} />
       <div className='flex flex-col'>
         <div className='absolute right-1/2 top-24 mx-auto flex w-fit translate-x-1/2 flex-col gap-2'>
           <div className='text-center font-poker text-3xl font-medium text-neutral-200'>

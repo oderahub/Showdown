@@ -11,8 +11,11 @@ import type { OverlayProps } from '~/types';
 import { ShuffleOverlay } from './shuffle';
 import { WaitingOverlay } from './waiting';
 
-export const GameOverlay = ({ contractAddress }: OverlayProps) => {
+export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   const { data, refetch } = useReadContracts({
+    query: {
+      refetchInterval: 4000, // Poll every 4 seconds for state changes
+    },
     contracts: [
       {
         ...gameConfig,
