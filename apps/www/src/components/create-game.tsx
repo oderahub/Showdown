@@ -161,7 +161,7 @@ export const CreateGame = () => {
                 Please connect your wallet first!
               </div>
             )}
-            <Button onClick={onCreate} disabled={!address}>
+            <Button disabled={!address} onClick={onCreate}>
               Create Game
             </Button>
             <div>OR</div>
@@ -169,14 +169,14 @@ export const CreateGame = () => {
               <Input
                 className='w-[24rem] translate-x-12 !rounded-3xl border-none outline-none'
                 placeholder='Enter Game ID'
+                disabled={!address}
                 value={gameId}
                 onChange={(e) => setGameId(e.target.value)}
-                disabled={!address}
               />
               <Button
                 className='-translate-x-12 rounded-3xl'
-                onClick={onJoin}
                 disabled={!address || !gameId}
+                onClick={onJoin}
               >
                 Join Game
               </Button>

@@ -12,7 +12,7 @@ import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 
 export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
-  const { data: totalPlayers, refetch } = useReadContract({
+  const { data: totalPlayers } = useReadContract({
     ...gameConfig,
     address: contractAddress,
     functionName: '_totalPlayers',
@@ -86,8 +86,7 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
   const totalPlayersCount = Number(totalPlayers ?? 0);
   const totalPlayersText = totalPlayers?.toString() ?? '0';
-  const startButtonLabelSuffix =
-    totalPlayersCount >= 2 ? '✓' : `(${totalPlayersCount}/2)`;
+  const startButtonLabelSuffix = `Start Game ${Number(totalPlayers ?? 0) >= 2 ? '✓' : `(${Number(totalPlayers ?? 0)}/2)`}`;
 
   return (
     <Overlay>
