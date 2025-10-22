@@ -153,13 +153,13 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 {Boolean(isMyTurn) && (
                     <>
                         <div className='flex flex-col gap-2'>
-                            <label htmlFor='bet-amount' className='text-center font-poker text-xl text-neutral-300'>
+                            <label className='text-center font-poker text-xl text-neutral-300' htmlFor='bet-amount'>
                                 Bet Amount (ETH)
                             </label>
                             <Input
-                                id='bet-amount'
                                 className='rounded-xl border-2 border-yellow-600 bg-neutral-800 text-center text-xl font-bold text-white'
                                 disabled={!isMyTurn}
+                                id='bet-amount'
                                 min='0'
                                 placeholder='0.01'
                                 step='0.01'

@@ -41,9 +41,10 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
         ],
     });
 
-    const winnerData = data?.[0]?.result;
+    const winnerData = data?.[0]?.result as readonly [string, bigint] | undefined;
     const winnerAddress = winnerData?.[0] ?? '';
-    const winnerWeight = winnerData?.[1] ?? 0n;
+    const winnerWeightRaw = winnerData?.[1] ?? 0n;
+    const winnerWeight = typeof winnerWeightRaw === 'bigint' ? winnerWeightRaw : BigInt(winnerWeightRaw);
     const totalPot = data?.[1]?.result ?? 0n;
     const totalPlayersResult = data?.[2]?.result ?? 0n;
     const totalPlayers = typeof totalPlayersResult === 'bigint' ? totalPlayersResult : BigInt(totalPlayersResult);
@@ -65,11 +66,11 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
 
                     <div className='text-center font-mono text-lg text-neutral-300'>
                         {winnerAddress.slice(0, 6)}...{winnerAddress.slice(-4)}
-                        {isWinner && <span className='ml-2 text-green-400'>(You!)</span>}
+                        {Boolean(isWinner) && <span className='ml-2 text-green-400'>(You!)</span>}
                     </div>
 
                     <div className='text-center text-xl text-neutral-300'>
-                        Winning Hand Strength: <span className='font-bold text-purple-400'>{winnerWeight.toString()}</span>
+                        Winning Hand Strength: <span className='font-bold text-purple-400'>{String(winnerWeight)}</span>
                     </div>
 
                     <div className='border-t border-neutral-600 pt-4'>

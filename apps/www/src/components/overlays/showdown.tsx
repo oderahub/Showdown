@@ -121,7 +121,7 @@ export const ShowdownOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 <div className='flex justify-center gap-3'>
                     {communityCards.map((cardId, index) => (
                         <button
-                            key={`card-${cardId}-${index}`}
+                            key={`card-${String(cardId)}-${String(index)}`}
                             type='button'
                             className={`
                 relative transform transition-all duration-200 hover:scale-110

@@ -111,9 +111,6 @@ export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     return <ShowdownOverlay contractAddress={contractAddress} refresh={refreshData} />;
   }
 
-  if (stage === 'ended') {
-    return <EndedOverlay contractAddress={contractAddress} refresh={refreshData} />;
-  }
-
-  return null;
+  // stage === 'ended'
+  return <EndedOverlay contractAddress={contractAddress} refresh={refreshData} />;
 };
