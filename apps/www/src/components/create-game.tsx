@@ -152,7 +152,14 @@ export const CreateGame = () => {
             }}
           >
             <div className='font-poker text-5xl'>Create or Join a Game</div>
-            <Button onClick={onCreate}>Create Game</Button>
+            {!address && (
+              <div className='text-center text-lg text-yellow-500'>
+                Please connect your wallet first!
+              </div>
+            )}
+            <Button onClick={onCreate} disabled={!address}>
+              Create Game
+            </Button>
             <div>OR</div>
             <div className='flex flex-row items-center gap-2'>
               <Input
@@ -160,8 +167,13 @@ export const CreateGame = () => {
                 placeholder='Enter Game ID'
                 value={gameId}
                 onChange={(e) => setGameId(e.target.value)}
+                disabled={!address}
               />
-              <Button className='-translate-x-12 rounded-3xl' onClick={onJoin}>
+              <Button
+                className='-translate-x-12 rounded-3xl'
+                onClick={onJoin}
+                disabled={!address || !gameId}
+              >
                 Join Game
               </Button>
             </div>
