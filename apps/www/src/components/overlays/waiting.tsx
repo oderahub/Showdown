@@ -5,14 +5,16 @@ import { gameConfig, wagmiConfig } from '~/lib/viem';
 
 import { waitForTransactionReceipt } from '@wagmi/core';
 import { toast } from 'sonner';
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useReadContract, useWriteContract, useChainId } from 'wagmi';
 import type { OverlayProps } from '~/types';
 
 import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 
 export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
-  const { data: totalPlayers } = useReadContract({
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const { data: totalPlayers, refetch } = useReadContract({
     ...gameConfig,
     address: contractAddress,
     functionName: '_totalPlayers',
@@ -20,17 +22,31 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       refetchInterval: 3000, // Poll every 3 seconds to detect new players
       gcTime: 0, // Don't cache
       staleTime: 0, // Always consider data stale
+      refetchOnWindowFocus: true, // Refetch when window regains focus
     },
   });
+
+  useEffect(() => {
+    const onFocus = () => {
+      console.log('[WaitingOverlay] Window focused, refetching...');
+      void refetch();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [refetch]);
 
   useEffect(() => {
     console.log(
       '[WaitingOverlay] Player count:',
       totalPlayers,
       'Contract:',
-      contractAddress
+      contractAddress,
+      'Account:',
+      address,
+      'Chain:',
+      chainId
     );
-  }, [totalPlayers, contractAddress]);
+  }, [totalPlayers, contractAddress, address, chainId]);
 
   const { writeContractAsync } = useWriteContract();
 
@@ -98,14 +114,24 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         <div className='text-center text-sm text-neutral-400'>
           Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
         </div>
+        <div className='text-center text-xs text-neutral-500'>
+          You: {address?.slice(0, 6)}...{address?.slice(-4)} | Chain: {chainId}
+        </div>
         <div className='flex w-full items-center justify-center font-poker text-2xl'>
-          {totalPlayersCount < 2
+          {Number(totalPlayers ?? 0) < 2
             ? 'Waiting for other players...'
             : 'Ready to start!'}
         </div>
         <Button
+          className='mx-auto w-fit'
+          variant='secondary'
+          onClick={() => void refetch()}
+        >
+          Refresh Player Count
+        </Button>
+        <Button
           className='mx-auto w-fit font-poker text-xl'
-          disabled={totalPlayersCount < 2}
+          disabled={Number(totalPlayers ?? 0) < 2}
           onClick={onStartGame}
         >
           Start Game {startButtonLabelSuffix}

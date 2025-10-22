@@ -8,12 +8,12 @@ import { useShuffle } from '~/lib/hooks';
 import { errorHandler } from '~/lib/utils';
 import { gameConfig, gameFactoryConfig, wagmiConfig } from '~/lib/viem';
 
-import { readContract, waitForTransactionReceipt } from '@wagmi/core';
+import { readContract, waitForTransactionReceipt, simulateContract } from '@wagmi/core';
 import GoldBG from 'public/gold-bg.webp';
 import PokerBG from 'public/poker-bg.jpg';
 import { toast } from 'sonner';
 import { isAddress, keccak256 } from 'viem';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract, useChainId } from 'wagmi';
 
 import {
   Dialog,
@@ -26,16 +26,26 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 
 export const CreateGame = () => {
-  const { address } = useAccount();
+  const { address, status } = useAccount();
+  const chainId = useChainId();
   const { writeContractAsync } = useWriteContract();
   const { getKey } = useShuffle();
   const router = useRouter();
 
   const [gameId, setGameId] = useState<string>('');
 
+  // Strict wallet connection check
+  const walletConnected = status === 'connected' && !!address && chainId === 4202;
+
   const onCreate = async () => {
+    if (!walletConnected) {
+      toast.error('Please connect wallet to Lisk Sepolia (Chain ID: 4202)');
+      return;
+    }
+
     const id = toast.loading('Creating Game...');
     try {
+      console.log('[CreateGame] Wallet:', address, 'Chain:', chainId);
       if (!address) {
         throw new Error('Please connect wallet.');
       }
@@ -84,17 +94,49 @@ export const CreateGame = () => {
   };
 
   const onJoin = async () => {
+    if (!walletConnected) {
+      toast.error('Please connect wallet to Lisk Sepolia (Chain ID: 4202)');
+      return;
+    }
+
+    if (!gameId) {
+      toast.error('Please enter a game ID');
+      return;
+    }
+
+    const isValidId = isAddress(gameId);
+    if (!isValidId) {
+      toast.error('Invalid game ID. Must be a valid contract address.');
+      return;
+    }
+
     const id = toast.loading('Joining Game...');
     try {
-      if (!address) {
-        throw new Error('Please connect wallet.');
-      }
-      if (!isAddress(gameId)) {
-        throw new Error('Invalid game ID.');
-      }
-      const contractAddress = gameId;
+      const contractAddress = gameId as `0x${string}`;
+      console.log('[JoinGame] Wallet:', address, 'Chain:', chainId);
+      console.log('[JoinGame] Contract:', contractAddress);
 
       const key = await getKey(address);
+      console.log('[JoinGame] Public key generated');
+
+      // Simulate transaction first to catch errors early
+      console.log('[JoinGame] Simulating transaction...');
+      await simulateContract(wagmiConfig, {
+        ...gameConfig,
+        address: contractAddress,
+        functionName: 'joinGame',
+        account: address,
+        args: [
+          {
+            addr: address,
+            publicKey: {
+              x: BigInt(key.pkxy[0]),
+              y: BigInt(key.pkxy[1]),
+            },
+          },
+        ],
+      });
+      console.log('[JoinGame] Simulation successful');
 
       const hash = await writeContractAsync({
         ...gameConfig,
@@ -120,17 +162,29 @@ export const CreateGame = () => {
       });
 
       console.log('[JoinGame] Transaction confirmed:', receipt);
-      toast.success('Game Joined Successfully!', { id });
 
-      // Wait longer for blockchain state to settle
-      console.log('[JoinGame] Waiting for state to update...');
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 4000);
+      // Verify on-chain player count increased
+      console.log('[JoinGame] Verifying player count...');
+      const totalPlayers = await readContract(wagmiConfig, {
+        ...gameConfig,
+        address: contractAddress,
+        functionName: '_totalPlayers',
       });
 
-      console.log('[JoinGame] Redirecting to game...');
-      // Force a full page reload to ensure fresh state
-      window.location.href = `/game/${contractAddress}`;
+      console.log('[JoinGame] _totalPlayers after join:', String(totalPlayers));
+
+      if (Number(totalPlayers) < 2) {
+        toast.warning(
+          `Join transaction confirmed but player count is still ${String(totalPlayers)}. Please check the game page.`,
+          { id, duration: 5000 }
+        );
+      } else {
+        toast.success(`Game Joined! Total players: ${String(totalPlayers)}`, { id });
+      }
+
+      // Redirect to game page
+      console.log('[JoinGame] Redirecting...');
+      router.push(`/game/${contractAddress}`);
     } catch (error) {
       console.error('[JoinGame] Error:', error);
       toast.error(errorHandler(error), { id });
@@ -161,7 +215,7 @@ export const CreateGame = () => {
                 Please connect your wallet first!
               </div>
             )}
-            <Button disabled={!address} onClick={onCreate}>
+            <Button disabled={!walletConnected} onClick={onCreate}>
               Create Game
             </Button>
             <div>OR</div>
@@ -175,7 +229,7 @@ export const CreateGame = () => {
               />
               <Button
                 className='-translate-x-12 rounded-3xl'
-                disabled={!address || !gameId}
+                disabled={!walletConnected || !gameId}
                 onClick={onJoin}
               >
                 Join Game
