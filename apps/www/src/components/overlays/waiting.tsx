@@ -57,18 +57,22 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       if (refresh) {
         await refresh();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('[StartGame] Error:', error);
-      console.error('[StartGame] Error details:', {
-        message: error?.message,
-        code: error?.code,
-        data: error?.data,
-        cause: error?.cause,
-      });
+
+      // Type-safe error details extraction
+      const errorDetails = {
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as Record<string, unknown>).code,
+        data: (error as Record<string, unknown>).data,
+        cause: (error as Record<string, unknown>).cause,
+      };
+      console.error('[StartGame] Error details:', errorDetails);
 
       // Better error messages
       let errorMessage = errorHandler(error);
-      if (error?.message?.includes('400')) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (errorMsg.includes('400')) {
         errorMessage = 'RPC error: Please try again or check if all players have shuffled';
       }
 
