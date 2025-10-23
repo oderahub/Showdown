@@ -5,7 +5,7 @@ Texas Hold'em is an on-chain implementation of the popular poker game, Texas Hol
 
 ### 📜 Deployed Contracts (Lisk Sepolia)
 
-- **Game Factory**: [0xB22AEba36bdB2C76875E6DfccB1168CE75f5E9F2](https://sepolia-blockscout.lisk.com/address/0xB22AEba36bdB2C76875E6DfccB1168CE75f5E9F2)
+- **Game Factory**: [0x85620725EFEF4A3a7c477eaF116e21BffeE3CD70](https://sepolia-blockscout.lisk.com/address/0x85620725EFEF4A3a7c477eaF116e21BffeE3CD70)
 - **Reveal Verifier**: [0x49cFFa95ffB77d398222393E3f0C4bFb5D996321](https://sepolia-blockscout.lisk.com/address/0x49cFFa95ffB77d398222393E3f0C4bFb5D996321)
 - **Texas Poker Library**: [0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791](https://sepolia-blockscout.lisk.com/address/0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791)
 - **QuickSort Library**: [0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d](https://sepolia-blockscout.lisk.com/address/0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d)
