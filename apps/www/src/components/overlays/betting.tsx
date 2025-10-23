@@ -55,10 +55,10 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const currentRound = Number(data?.[0]?.result ?? 0);
     const highestBet = data?.[1]?.result ?? 0n;
     const myBet = data?.[2]?.result ?? 0n;
-    const nextPlayerResult = data?.[3]?.result;
-    const nextPlayer = typeof nextPlayerResult === 'string' ? nextPlayerResult : '';
+    const nextPlayerData = data?.[3]?.result as { addr: string } | undefined;
+    const nextPlayerAddress = nextPlayerData?.addr ?? '';
 
-    const isMyTurn = nextPlayer.toLowerCase() === address?.toLowerCase();
+    const isMyTurn = nextPlayerAddress.toLowerCase() === address?.toLowerCase();
     const roundName = getCurrentRound(currentRound);
     const callAmount = highestBet > myBet ? highestBet - myBet : 0n;
 
@@ -146,7 +146,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                     {isMyTurn ? (
                         <span className='font-bold text-green-400'>🎯 Your Turn!</span>
                     ) : (
-                        <span>Waiting for: {nextPlayer.slice(0, 6)}...{nextPlayer.slice(-4)}</span>
+                        <span>Waiting for: {nextPlayerAddress.slice(0, 6)}...{nextPlayerAddress.slice(-4)}</span>
                     )}
                 </div>
 
@@ -210,6 +210,11 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 <div className='text-center text-xs text-neutral-500'>
                     Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
                 </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <div className='text-center text-xs text-neutral-600'>
+                        Debug: Next player = {nextPlayerAddress || 'none'}
+                    </div>
+                )}
             </div>
         </Overlay>
     );
