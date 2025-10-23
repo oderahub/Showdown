@@ -328,13 +328,15 @@ contract Game is IGame, Shuffle {
 
     function getPendingPlayerRevealTokens(address user) public view returns (uint8[] memory) {
         uint8[] memory cards = new uint8[](_totalPlayers * 2);
+        uint256 cardIndex = 0;
         for (uint256 i = 0; i < _totalPlayers; i++) {
             if (_players[i].addr != user) {
                 uint8[5] memory pCards = _playerCards[i];
                 for (uint256 j = 0; j < 2; j++) {
                     bool hasRevealToken = hasRevealToken(pCards[j], user);
                     if (!hasRevealToken) {
-                        cards[j] = pCards[j];
+                        cards[cardIndex] = pCards[j];
+                        cardIndex++;
                     }
                 }
             } else {
@@ -343,7 +345,8 @@ contract Game is IGame, Shuffle {
                     for (uint256 j = 0; j < 2; j++) {
                         bool hasRevealToken = hasRevealToken(pCards[j], user);
                         if (!hasRevealToken) {
-                            cards[j] = pCards[j];
+                            cards[cardIndex] = pCards[j];
+                            cardIndex++;
                         }
                     }
                 }
