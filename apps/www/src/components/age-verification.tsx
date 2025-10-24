@@ -48,7 +48,7 @@ export const AgeVerificationModal = () => {
   };
 
   return (
-    <Dialog onOpenChange={() => { /* Prevent closing */ }} open={isOpen}>
+    <Dialog open={isOpen} onOpenChange={() => { /* Prevent closing */ }}>
       <DialogContent
         className="max-w-md"
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -90,8 +90,8 @@ export const AgeVerificationModal = () => {
                 onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
               />
               <label
-                htmlFor="age-confirm"
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                htmlFor="age-confirm"
               >
                 I confirm that I am at least 18 years old (21+ where required) and that online gambling is legal in my jurisdiction
               </label>
@@ -104,8 +104,8 @@ export const AgeVerificationModal = () => {
                 onCheckedChange={(checked) => setHasRead(checked as boolean)}
               />
               <label
-                htmlFor="terms-confirm"
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                htmlFor="terms-confirm"
               >
                 I have read and agree to the{' '}
                 <Link

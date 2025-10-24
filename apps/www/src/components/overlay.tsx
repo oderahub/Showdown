@@ -5,11 +5,46 @@ import { cn } from '~/lib/utils';
 import GoldBG from 'public/gold-bg.webp';
 import PokerBG from 'public/poker-bg.jpg';
 
+interface OverlayProps extends ComponentProps<'div'> {
+  variant?: 'fullscreen' | 'compact';
+}
+
 export const Overlay = ({
   children,
   className,
+  variant = 'fullscreen',
   ...props
-}: ComponentProps<'div'>) => {
+}: OverlayProps) => {
+  if (variant === 'compact') {
+    // Compact mode: Fixed bottom-center, doesn't block the game view
+    return (
+      <div className='pointer-events-none fixed inset-0 z-40'>
+        <div
+          className='pointer-events-auto fixed bottom-8 left-[50%] z-40 flex max-h-[60vh] translate-x-[-50%] gap-4 overflow-y-auto rounded-3xl border bg-background p-3 shadow-2xl'
+          style={{
+            backgroundImage: `url(${GoldBG.src})`,
+            objectFit: 'cover',
+          }}
+        >
+          <div
+            className={cn(
+              'min-h-[12rem] w-full min-w-[32rem] max-w-[40rem] rounded-2xl p-6',
+              className
+            )}
+            style={{
+              backgroundImage: `url(${PokerBG.src})`,
+              objectFit: 'cover',
+            }}
+            {...props}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fullscreen mode: Original behavior for shuffle/waiting/ended stages
   return (
     <div className='fixed inset-0 z-50 bg-black/80'>
       <div

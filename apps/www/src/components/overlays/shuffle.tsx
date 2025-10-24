@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 
 import { firstShuffle, getMaskedCads, shuffle } from '~/lib/shuffle';
-import { errorHandler } from '~/lib/utils';
+import { errorHandler, getErrorAction } from '~/lib/utils';
 import { gameConfig, wagmiConfig } from '~/lib/viem';
 import { getDeck, getGameKey } from '~/lib/viem/actions';
 
@@ -124,7 +124,14 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       toast.success('Cards Shuffled Successfully!', { id });
     } catch (error) {
       console.log(error);
-      toast.error(errorHandler(error), { id });
+      const errorMessage = errorHandler(error);
+      const suggestion = getErrorAction(errorMessage);
+
+      toast.error(errorMessage, {
+        id,
+        description: suggestion ?? undefined,
+        duration: 5000,
+      });
     }
   };
 

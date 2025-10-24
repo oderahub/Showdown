@@ -114,8 +114,15 @@ contract GameTest is Test {
         console.log("Current Round: ", currentRound());
         console.log("Current Move: ", currentMove());
         console.log("Pot Amount: ", game.getPotAmount());
-        getCards(alice.addr);
-        getCards(bob.addr);
+
+        // Only try to get cards for players who have joined
+        if (game.getPlayer(alice.addr).addr != address(0)) {
+            getCards(alice.addr);
+        }
+        if (totalPlayers >= 2 && game.getPlayer(bob.addr).addr != address(0)) {
+            getCards(bob.addr);
+        }
+
         getCommunityCards();
 
         console.log("");
@@ -127,6 +134,10 @@ contract GameTest is Test {
         vm.selectFork(liskSepoliaFork);
         printStats();
 
+        // Fund alice and bob with ETH
+        vm.deal(alice.addr, 1000 ether);
+        vm.deal(bob.addr, 1000 ether);
+
         // Add Bob as player
         vm.startBroadcast(bob.addr);
         Player memory bobPlayer = Player({addr: bob.addr, publicKey: Point({x: 0, y: 0})});
@@ -134,22 +145,51 @@ contract GameTest is Test {
         console.log("Bob joined the game");
         vm.stopBroadcast();
 
+        // Start the game
+        vm.startBroadcast(alice.addr);
+        game.startGame();
+        console.log("Game started");
+        vm.stopBroadcast();
+
+        // Simulate shuffles (bypass shuffle stage for testing)
+        // In real game, players would shuffle the deck
+        // For this test, we'll mock the shuffle completion
+        uint256[4][52] memory mockDeck;
+        for (uint8 i = 0; i < 52; i++) {
+            mockDeck[i] = [uint256(i), uint256(i), uint256(i), uint256(i)];
+        }
+
+        uint256[] memory mockPkc = new uint256[](52);
+        for (uint8 i = 0; i < 52; i++) {
+            mockPkc[i] = uint256(i);
+        }
+
+        vm.startBroadcast(alice.addr);
+        game.initShuffle(mockPkc, mockDeck);
+        console.log("Alice shuffled");
+        vm.stopBroadcast();
+
+        vm.startBroadcast(bob.addr);
+        game.shuffle(mockDeck);
+        console.log("Bob shuffled");
+        vm.stopBroadcast();
+
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
-        game.placeBet(10);
+        game.placeBet{value: 10}(10);
         console.log("Alice placed bet of 10");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
         vm.expectRevert(IGame.InvalidBetAmount.selector);
-        game.placeBet(9);
+        game.placeBet{value: 9}(9);
         console.log("Bob cannot place bet less than highest bid");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
-        game.placeBet(10);
+        game.placeBet{value: 10}(10);
         console.log("Bob placed bet of 10");
         vm.stopBroadcast();
 
@@ -158,19 +198,19 @@ contract GameTest is Test {
         // Bob Places Bet in wrong sequence
         vm.startBroadcast(bob.addr);
         vm.expectRevert(IGame.InvalidBetSequence.selector);
-        game.placeBet(15);
+        game.placeBet{value: 15}(15);
         console.log("Bob cannot place bet as not his turn");
         vm.stopBroadcast();
 
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
-        game.placeBet(15);
+        game.placeBet{value: 15}(15);
         console.log("Alice placed bet of 15");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
-        game.placeBet(25);
+        game.placeBet{value: 25}(25);
         console.log("Bob placed bet of 25");
         vm.stopBroadcast();
 
@@ -178,13 +218,13 @@ contract GameTest is Test {
 
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
-        game.placeBet(30);
+        game.placeBet{value: 30}(30);
         console.log("Alice placed bet of 30");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
-        game.placeBet(35);
+        game.placeBet{value: 35}(35);
         console.log("Bob placed bet of 35");
         vm.stopBroadcast();
 
@@ -192,13 +232,13 @@ contract GameTest is Test {
 
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
-        game.placeBet(40);
+        game.placeBet{value: 40}(40);
         console.log("Alice placed bet of 40");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
-        game.placeBet(45);
+        game.placeBet{value: 45}(45);
         console.log("Bob placed bet of 45");
         vm.stopBroadcast();
 
@@ -206,13 +246,13 @@ contract GameTest is Test {
 
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
-        game.placeBet(50);
+        game.placeBet{value: 50}(50);
         console.log("Alice placed bet of 50");
         vm.stopBroadcast();
 
         // Bob Places Bet
         vm.startBroadcast(bob.addr);
-        game.placeBet(55);
+        game.placeBet{value: 55}(55);
         console.log("Bob placed bet of 55");
         vm.stopBroadcast();
 
@@ -221,7 +261,7 @@ contract GameTest is Test {
         // Alice Places Bet
         vm.startBroadcast(alice.addr);
         vm.expectRevert(IGame.GameEnded.selector);
-        game.placeBet(60);
+        game.placeBet{value: 60}(60);
         console.log("Alice cannot place bet as game has ended.");
         vm.stopBroadcast();
 

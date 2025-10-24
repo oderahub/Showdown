@@ -45,4 +45,8 @@ interface IGame {
 
     error WinnerAlreadyDeclared();
     error ActionTimeoutNotExpired();
+    error IncorrectBetAmount();
+    error TransferFailed();
+    error NoWinningsToWithdraw();
+    error NotWinner();
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { errorHandler } from '~/lib/utils';
+import { errorHandler, getErrorAction } from '~/lib/utils';
 import { getCurrentRound } from '~/lib/helpers';
 import { gameConfig, wagmiConfig } from '~/lib/viem';
 
@@ -98,7 +98,14 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
             if (refresh) await refresh();
         } catch (error) {
             console.error('Force fold error:', error);
-            toast.error('Failed to force fold. Timeout may not have expired yet.', { id });
+            const errorMessage = errorHandler(error);
+            const suggestion = getErrorAction(errorMessage);
+
+            toast.error(errorMessage, {
+                id,
+                description: suggestion ?? 'The 2-minute timeout must fully expire before force folding.',
+                duration: 5000,
+            });
         }
     };
 
@@ -116,6 +123,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 address: contractAddress,
                 functionName: 'placeBet',
                 args: [amount],
+                value: amount, // CRITICAL: Send ETH with the transaction
             });
 
             toast.loading('Confirming transaction...', { id });
@@ -127,7 +135,15 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
             if (refresh) await refresh();
         } catch (error) {
             console.error('[PlaceBet] Error:', error);
-            toast.error(errorHandler(error), { id });
+            const errorMessage = errorHandler(error);
+            const suggestion = getErrorAction(errorMessage);
+
+            // Show error with suggestion
+            toast.error(errorMessage, {
+                id,
+                description: suggestion ?? undefined,
+                duration: 5000, // Show for 5 seconds
+            });
         }
     };
 
@@ -148,7 +164,14 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
             if (refresh) await refresh();
         } catch (error) {
             console.error('[Fold] Error:', error);
-            toast.error(errorHandler(error), { id });
+            const errorMessage = errorHandler(error);
+            const suggestion = getErrorAction(errorMessage);
+
+            toast.error(errorMessage, {
+                id,
+                description: suggestion ?? undefined,
+                duration: 5000,
+            });
         }
     };
 
@@ -164,8 +187,8 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     };
 
     return (
-        <Overlay>
-            <div className='flex w-full flex-col gap-4'>
+        <Overlay variant='compact'>
+            <div className='flex w-full flex-col gap-3'>
                 <div className='text-center font-poker text-4xl'>{roundName} Round</div>
 
                 <div className='flex flex-col gap-2 text-center text-lg'>
@@ -182,12 +205,10 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                     )}
                 </div>
 
-                <div className='text-center text-3xl font-bold'>{roundName}</div>
-
                 {/* Action Timer */}
                 <div className='flex flex-col items-center gap-2'>
-                    <div className={`flex items-center gap-2 ${getTimerColor()} font-mono text-2xl font-bold`}>
-                        <Clock className='h-6 w-6' />
+                    <div className={`flex items-center gap-2 ${getTimerColor()} font-mono text-3xl font-bold transition-all duration-300 ${timeRemaining <= 10 ? 'animate-pulse scale-110' : ''}`}>
+                        <Clock className={`h-7 w-7 ${timeRemaining <= 10 ? 'animate-spin' : ''}`} />
                         <span>{formatTime(timeRemaining)}</span>
                     </div>
                     <div className='text-center text-sm text-neutral-400'>
@@ -200,31 +221,31 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 </div>
 
                 {/* Force Fold Warning */}
-                {isTimeExpired && !isMyTurn && (
+                {Boolean(isTimeExpired && !isMyTurn) && (
                     <div className='flex flex-col items-center gap-2 rounded-lg bg-red-500/10 p-4'>
                         <div className='flex items-center gap-2 text-red-500'>
                             <AlertTriangle className='h-5 w-5 animate-pulse' />
                             <span className='font-semibold'>Player Timeout!</span>
                         </div>
                         <Button
-                            onClick={onForceFold}
-                            variant='destructive'
-                            size='sm'
                             className='animate-pulse'
+                            size='sm'
+                            variant='destructive'
+                            onClick={onForceFold}
                         >
                             Force Fold Inactive Player
                         </Button>
                     </div>
                 )}
 
-                {isTimeExpired && isMyTurn && (
+                {Boolean(isTimeExpired && isMyTurn) && (
                     <div className='flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-red-500'>
                         <AlertTriangle className='h-5 w-5 animate-pulse' />
                         <span className='text-sm font-semibold'>Your time is up! Act now or be force-folded.</span>
                     </div>
                 )}
 
-                {isMyTurn && (
+                {Boolean(isMyTurn) && (
                     <>
                         <div className='flex flex-col gap-2'>
                             <label className='text-center font-poker text-xl text-neutral-300' htmlFor='bet-amount'>

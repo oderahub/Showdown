@@ -67,7 +67,7 @@ export const AddPendingCards = ({
     },
   });
   return (
-    <div className='absolute bottom-32 right-12'>
+    <div className='absolute bottom-32 right-12 z-[45]'>
       <Popover>
         <PopoverTrigger className='flex h-10 w-10 flex-row items-center justify-center gap-2 rounded-full border-2 border-[#70AF8A] bg-[#204D39] !p-0 px-4 py-2 text-lg text-[#89d6a9]'>
           {isPending ? (

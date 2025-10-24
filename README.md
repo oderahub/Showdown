@@ -1,14 +1,38 @@
 <p align="center">
 <img src="./assets/logo-text.png" alt=""  width="400px"/></p>
 
-Texas Hold'em is an on-chain implementation of the popular poker game, Texas Hold'em. The game is built using Zypher Network's ZK Shuffle SDK, where each player takes turns to shuffle the deck and deal the cards. **Deployed on Lisk Sepolia.**
+<p align="center">
+  <strong>A fully on-chain Texas Hold'em poker game with ZK-powered trustless card shuffling</strong>
+</p>
+
+<p align="center">
+  Built with Zypher Network's ZK Shuffle SDK • Deployed on Lisk Sepolia
+</p>
+
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-how-it-works">How It Works</a> •
+  <a href="#-game-mechanics">Game Mechanics</a> •
+  <a href="#-get-started">Get Started</a> •
+  <a href="#-deployment">Deployment</a>
+</p>
+
+---
+
+## 🎯 Features
+
+✅ **Trustless Card Shuffling** - ZK-SNARK proofs ensure fair card distribution
+✅ **Real ETH Stakes** - Smart contracts hold and distribute winnings automatically
+✅ **Strategic Gameplay** - Choose 3 from 5 community cards for best hand
+✅ **Anti-Griefing** - 2-minute action timeout with force-fold mechanism
+✅ **User-Friendly Errors** - Clear blockchain error messages for non-technical users
+✅ **Compact UI** - Betting overlay doesn't block card view
+✅ **Auto-Decryption** - Cards reveal automatically when tokens are submitted
 
 ### 📜 Deployed Contracts (Lisk Sepolia)
 
-- **Game Factory**: [0x85620725EFEF4A3a7c477eaF116e21BffeE3CD70](https://sepolia-blockscout.lisk.com/address/0x85620725EFEF4A3a7c477eaF116e21BffeE3CD70)
+- **Game Factory**: [0x48ae2a23841aBb319445Ccb29722b46973B03A81](https://sepolia-blockscout.lisk.com/address/0x48ae2a23841aBb319445Ccb29722b46973B03A81) ⭐ **LATEST**
 - **Reveal Verifier**: [0x49cFFa95ffB77d398222393E3f0C4bFb5D996321](https://sepolia-blockscout.lisk.com/address/0x49cFFa95ffB77d398222393E3f0C4bFb5D996321)
-- **Texas Poker Library**: [0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791](https://sepolia-blockscout.lisk.com/address/0x8BdF4d3C211D05A89565aa31DcbBFF00b77EC791)
-- **QuickSort Library**: [0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d](https://sepolia-blockscout.lisk.com/address/0x4E4df0210a44b26c09E460Bdb4355bfEf6d2f29d)
 
 ### 🔐 Security Model
 
@@ -24,46 +48,141 @@ Texas Hold'em is an on-chain implementation of the popular poker game, Texas Hol
 
 > **Note**: For production with real money, deploy on chains with higher contract size limits (e.g., Base, Optimism) for full on-chain shuffle verification.
 
-## How it works 🛠️
+## 🎮 How it works
 
-After a game is created multiple players can join the game. After a minimum of 2 players have joined the game, the game can be started by anyone. The game Involves 3 stages:
+The game follows a **6-stage flow** from shuffle to showdown:
 
-- **Shuffle Stage**
-- **Betting Stage**
-- **Reveal Stage**
+```
+Shuffle → Ante → Pre-Flop → Flop → Turn → River → End (Choose Cards) → Winner
+```
 
----
+### 🔀 Stage 1: Shuffle
 
-### Shuffle Stage
+All players must shuffle the deck using ZK proofs before betting begins.
 
-The first stage in the game is the Shuffle Stage where the players can shuffle the cards. The Shuffling occurs as follows:
+**Process:**
+1. **Player 1**: Generates masked deck + public key commitment + SNARK proof → submits on-chain
+2. **Players 2-N**: Fetch on-chain deck → shuffle → generate SNARK proof → submit on-chain
+3. All players must complete shuffling before game can start
 
-1. `Player 1`: The first player generates a masked deck and then shuffles the deck and sends it on chain along with the Public Key Commitment and the SNARK Proof.
-2. `Player 2`-`Player N`: Remaining players fetch the on-chain deck and shuffle the cards and send it on chain along with the SNARK Proof.
-
----
-
-### Betting Stage
-
-The betting stage is divided into 5 Rounds where in each stage players have to place bets.
-
-1. `Ante`: In this round players have to contribute to the pot. This is a pre-bid round.
-2. `Pre-Flop`: In this round, 2 cards are dealt to each player and the player has to place a bet. Also Players need to submit reveal tokens for other player cards so that other players can unmask their cards, also ensuring that only the owner can unmask the card.
-3. `Flop`: In this round, 3 community cards are revealed to the players and the players have to place bets to complete this round. Also Players need to submit reveal tokens these cards.
-4. `Turn`: In this round, the 4th community card is revealed to the players and the players have to place bets to complete this round. Also Players need to submit reveal tokens these cards.
-5. `River`: In this round, the 5th community card is revealed to the players and the players have to place bets to complete this round. Also Players need to submit reveal tokens these cards.
-
-After all rounds have been completed we can move on to the next stage.
+**ZK Security:** Each shuffle is cryptographically proven to be a valid permutation without revealing card order.
 
 ---
 
-### Reveal Stage
+### 💰 Stages 2-6: Betting Rounds (5 Rounds)
 
-At this point all bets have been submitted so players need to reveal their 2 initial cards, so each player submits their own reveal tokens so that others can see those cards.
+Players bet in turns. Each round has different cards revealed:
 
-Also each player can choose 3 cards from the 5 community cards to make a powerful hand. The player with the most powerful hand wins the game.
+| Round | Cards Revealed | Action Required |
+|-------|---------------|-----------------|
+| **1. Ante** | None | Initial pot contribution |
+| **2. Pre-Flop** | 2 hole cards per player | Bet + Submit reveal tokens for opponents' cards |
+| **3. Flop** | 3 community cards | Bet + Submit reveal tokens for community cards |
+| **4. Turn** | 4th community card | Bet + Submit reveal tokens |
+| **5. River** | 5th community card | Bet + Submit reveal tokens |
 
-The logic to calculate the most powerful hand can be found [here](./packages/contracts/src/libraries/TexasPoker.sol)
+**Betting Mechanics:**
+- ✅ Players must send **actual ETH** with bets (no IOU system)
+- ✅ Must match or raise current highest bet
+- ✅ Can fold to exit (forfeit stake)
+- ✅ 120-second timeout per action (force-fold if exceeded)
+
+---
+
+### 🃏 Stage 7: End Round (Strategic Choice)
+
+**This is where strategy matters!**
+
+After River betting completes, each player must:
+1. **Choose 3 cards** from the 5 community cards
+2. Submit choice on-chain via `chooseCards()` function
+
+**Your Final Hand Structure:**
+```
+[Hole Card 1] [Hole Card 2] [Community Card] [Community Card] [Community Card]
+     ↑              ↑              ↑                ↑                ↑
+  Fixed (index 0) (index 1)    Your Choice    Your Choice    Your Choice
+```
+
+**Example:**
+```
+Your Hole: [A♠ K♠]
+Community: [Q♠ J♠ 10♠ 2♦ 7♣]
+            1   2   3   4  5
+
+Best Choice: Pick cards 1, 2, 3
+Final Hand: [A♠ K♠ Q♠ J♠ 10♠] = Royal Flush! 🏆
+```
+
+**Why This Mechanic?**
+- More **strategic** than auto-selecting best hand
+- Requires **poker knowledge** and hand evaluation skills
+- Adds **skill-based gameplay** element
+- Different from standard Texas Hold'em where computer picks best 5 from 7
+
+---
+
+### 🏆 Stage 8: Winner Determination & Payout
+
+After all players choose their cards:
+
+1. **Hand Evaluation**: Contract evaluates each player's 5-card hand using `TexasPoker.sol`
+2. **Weight Calculation**: Each hand gets a weight (Royal Flush = 9000+, High Card = 1000+)
+3. **Winner Selection**: Highest weight wins
+4. **Automatic Payout**: ETH transferred to winner immediately
+5. **Backup Withdrawal**: `claimWinnings()` available if auto-transfer fails
+
+**Hand Rankings** (see [TexasPoker.sol](./packages/contracts/src/libraries/TexasPoker.sol)):
+1. Royal Flush → 9000+
+2. Straight Flush → 8000+
+3. Four of a Kind → 7000+
+4. Full House → 6000+
+5. Flush → 5000+
+6. Straight → 4000+
+7. Three of a Kind → 3000+
+8. Two Pair → 2000+
+9. Pair → 1000+
+10. High Card → 0-999
+
+---
+
+## 🎯 Game Mechanics
+
+### Anti-Griefing System
+
+**Problem:** Players could stall the game indefinitely
+**Solution:** 120-second action timeout
+
+- Each player has 2 minutes per action
+- Timer resets after each valid action
+- Any player can call `forceFold()` after timeout expires
+- Timed-out player automatically folds and forfeits stake
+
+### Card Reveal System
+
+**How Decryption Works:**
+
+1. **Submit Reveal Tokens** (⚠️ button appears)
+   - Click to generate tokens for cards that need revealing
+   - Uses your secret key + ZK cryptography
+   - Tokens allow others to decrypt without exposing your key
+
+2. **Auto-Decryption** (happens automatically)
+   - Once all players submit tokens, cards decrypt
+   - Refreshes every 2 seconds
+   - No manual action needed after token submission
+
+3. **Privacy Guarantee**
+   - Only you can decrypt your hole cards (until End round)
+   - Community cards decrypt when all tokens submitted
+   - ZK proofs ensure no cheating
+
+### Smart Error Handling
+
+Blockchain errors are translated to user-friendly messages:
+
+
+See all error messages in [utils.ts](./apps/www/src/lib/utils.ts)
 
 ## Demo Video 🎥
 
@@ -144,16 +263,8 @@ pnpm install
 
 ```
 
-Then fill in the Environment variables in `apps/www/.env.local`
-
-```bash
-NEXT_PUBLIC_WALLETCONNECT_ID="YOUR_WALLETCONNECT_ID"
-```
-
 Then run the following command to start the application:
 
 ```bash
 pnpm dev
 ```
-
----

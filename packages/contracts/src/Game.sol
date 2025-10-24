@@ -121,22 +121,26 @@ contract Game is IGame, Shuffle {
         _addMultipleRevealTokens(indexes, revealTokens);
     }
 
-    function placeBet(uint256 _amount) public onlyPlayer(msg.sender) {
+    function placeBet(uint256 _amount) public payable onlyPlayer(msg.sender) {
         // Validate game state
         if (!_gameStarted) revert GameNotStarted();
         if (_totalShuffles < _totalPlayers) revert NotShuffled();
         if (_currentRound == GameRound.End) revert GameEnded();
-        
+
         // Validate player turn
         if (_players[_nextBet].addr != msg.sender) revert InvalidBetSequence();
-        
+
         // Validate player hasn't folded
         if (_isFolded[msg.sender]) revert PlayerFolded();
-        
-        // Validate bet amount
-        if (_amount < _highestBet) revert InvalidBetAmount();
 
-        _bets[msg.sender] += _amount;
+        // Validate bet amount and msg.value match
+        if (msg.value != _amount) revert IncorrectBetAmount();
+
+        // Validate that player's new total bet meets or exceeds highest bet
+        uint256 newTotalBet = _bets[msg.sender] + _amount;
+        if (newTotalBet < _highestBet) revert InvalidBetAmount();
+
+        _bets[msg.sender] = newTotalBet;
         if (_bets[msg.sender] > _highestBet) {
             _highestBet = _bets[msg.sender];
         }
@@ -268,7 +272,7 @@ contract Game is IGame, Shuffle {
 
         // Get index of largest weight
         uint256 maxIndex = 0;
-        for (uint256 i = 1; i < _totalPlayers; i++) {
+        for (uint256 i = 1; i < players.length; i++) {
             if (weights[i] > weights[maxIndex]) {
                 maxIndex = i;
             }
@@ -276,12 +280,39 @@ contract Game is IGame, Shuffle {
 
         uint256 winnerIndex = getPlayerIndex(players[maxIndex].addr);
         winner = _players[winnerIndex];
-        // Move pot to winner
+
+        // Calculate pot BEFORE clearing bets (bug fix)
+        uint256 totalPot = getPotAmount();
+
+        // Clear all player bets except winner's
         for (uint256 i = 0; i < _totalPlayers; i++) {
             _bets[_players[i].addr] = 0;
         }
-        _bets[winner.addr] = getPotAmount();
+
+        // Store total pot for winner to claim
+        _bets[winner.addr] = totalPot;
+
+        // Automatically transfer winnings to winner
+        (bool success, ) = payable(winner.addr).call{value: totalPot}("");
+        if (!success) revert TransferFailed();
     }
+
+    function claimWinnings() public {
+        if (winner.addr == address(0)) revert GameNotEnded();
+        if (msg.sender != winner.addr) revert NotWinner();
+
+        uint256 amount = _bets[msg.sender];
+        if (amount == 0) revert NoWinningsToWithdraw();
+
+        _bets[msg.sender] = 0;
+
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        if (!success) revert TransferFailed();
+    }
+
+    // Allow contract to receive ETH
+    receive() external payable {}
+    fallback() external payable {}
 
     /// =================================================================
     ///                         View Functions
