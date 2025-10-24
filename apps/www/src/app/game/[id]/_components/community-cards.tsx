@@ -60,5 +60,5 @@ const CommunityCard = ({ contractAddress, cardIndex }: CommunityCardProps) => {
     },
   });
 
-  return <PokerCard cardId={data.data} className='w-20 rounded-lg' />;
+  return <PokerCard cardId={data.data as number} className='w-20 rounded-lg' />;
 };

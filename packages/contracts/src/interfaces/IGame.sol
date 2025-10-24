@@ -44,4 +44,5 @@ interface IGame {
     error DuplicateCommunityCard();
 
     error WinnerAlreadyDeclared();
+    error ActionTimeoutNotExpired();
 }

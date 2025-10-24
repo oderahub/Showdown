@@ -10,7 +10,8 @@ import { waitForTransactionReceipt } from '@wagmi/core';
 import { toast } from 'sonner';
 import { useAccount, useReadContracts, useWriteContract } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
-import type { OverlayProps } from '~/types';
+import type { OverlayProps, Player } from '~/types';
+import { Clock, AlertTriangle } from 'lucide-react';
 
 import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
@@ -22,45 +23,84 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const [betAmount, setBetAmount] = useState<string>('0.01');
 
     const { data } = useReadContracts({
-        query: {
-            refetchInterval: 3000,
-            gcTime: 0,
-            staleTime: 0,
-        },
         contracts: [
             {
-                ...gameConfig,
+                abi: gameConfig.abi,
                 address: contractAddress,
                 functionName: '_currentRound',
+                chainId: gameConfig.chainId,
             },
             {
-                ...gameConfig,
+                abi: gameConfig.abi,
                 address: contractAddress,
                 functionName: '_highestBet',
+                chainId: gameConfig.chainId,
             },
             {
-                ...gameConfig,
+                abi: gameConfig.abi,
                 address: contractAddress,
                 functionName: '_bets',
                 args: [address ?? '0x0'],
+                chainId: gameConfig.chainId,
             },
             {
-                ...gameConfig,
+                abi: gameConfig.abi,
                 address: contractAddress,
                 functionName: 'nextPlayer',
+                chainId: gameConfig.chainId,
+            },
+            {
+                abi: gameConfig.abi,
+                address: contractAddress,
+                functionName: 'getTimeRemaining',
+                chainId: gameConfig.chainId,
             },
         ],
+        query: {
+            refetchInterval: 1000,
+        },
     });
 
     const currentRound = Number(data?.[0]?.result ?? 0);
-    const highestBet = data?.[1]?.result ?? 0n;
-    const myBet = data?.[2]?.result ?? 0n;
-    const nextPlayerData = data?.[3]?.result as { addr: string } | undefined;
+    const highestBet = (data?.[1]?.result as bigint | undefined) ?? 0n;
+    const myBet = (data?.[2]?.result as bigint | undefined) ?? 0n;
+    const nextPlayerData = data?.[3]?.result as Player | undefined;
     const nextPlayerAddress = nextPlayerData?.addr ?? '';
+    const timeRemaining = Number(data?.[4]?.result ?? 120);
 
     const isMyTurn = nextPlayerAddress.toLowerCase() === address?.toLowerCase();
     const roundName = getCurrentRound(currentRound);
     const callAmount = highestBet > myBet ? highestBet - myBet : 0n;
+    const isTimeExpired = timeRemaining === 0;
+
+    const formatTime = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins)}:${String(secs).padStart(2, '0')}`;
+    };
+
+    const getTimerColor = () => {
+        if (timeRemaining <= 10) return 'text-red-500';
+        if (timeRemaining <= 30) return 'text-orange-500';
+        return 'text-green-500';
+    };
+
+    const onForceFold = async () => {
+        const id = toast.loading('Force folding inactive player...');
+        try {
+            const hash = await writeContractAsync({
+                ...gameConfig,
+                address: contractAddress,
+                functionName: 'forceFold',
+            });
+            await waitForTransactionReceipt(wagmiConfig, { hash });
+            toast.success('Player force-folded due to timeout', { id });
+            if (refresh) await refresh();
+        } catch (error) {
+            console.error('Force fold error:', error);
+            toast.error('Failed to force fold. Timeout may not have expired yet.', { id });
+        }
+    };
 
     const onPlaceBet = async () => {
         const id = toast.loading('Placing bet...');
@@ -135,22 +175,56 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                     <div className='text-neutral-300'>
                         Your Bet: <span className='font-bold text-green-500'>{formatEther(myBet)} ETH</span>
                     </div>
-                    {callAmount > 0n && (
+                    {Boolean(callAmount > 0n) && (
                         <div className='text-neutral-300'>
                             To Call: <span className='font-bold text-orange-500'>{formatEther(callAmount)} ETH</span>
                         </div>
                     )}
                 </div>
 
-                <div className='text-center text-sm text-neutral-400'>
-                    {isMyTurn ? (
-                        <span className='font-bold text-green-400'>🎯 Your Turn!</span>
-                    ) : (
-                        <span>Waiting for: {nextPlayerAddress.slice(0, 6)}...{nextPlayerAddress.slice(-4)}</span>
-                    )}
+                <div className='text-center text-3xl font-bold'>{roundName}</div>
+
+                {/* Action Timer */}
+                <div className='flex flex-col items-center gap-2'>
+                    <div className={`flex items-center gap-2 ${getTimerColor()} font-mono text-2xl font-bold`}>
+                        <Clock className='h-6 w-6' />
+                        <span>{formatTime(timeRemaining)}</span>
+                    </div>
+                    <div className='text-center text-sm text-neutral-400'>
+                        {isMyTurn ? (
+                            <span className='font-bold text-green-400'>🎯 Your Turn!</span>
+                        ) : (
+                            <span>Waiting for: {nextPlayerAddress.slice(0, 6)}...{nextPlayerAddress.slice(-4)}</span>
+                        )}
+                    </div>
                 </div>
 
-                {Boolean(isMyTurn) && (
+                {/* Force Fold Warning */}
+                {isTimeExpired && !isMyTurn && (
+                    <div className='flex flex-col items-center gap-2 rounded-lg bg-red-500/10 p-4'>
+                        <div className='flex items-center gap-2 text-red-500'>
+                            <AlertTriangle className='h-5 w-5 animate-pulse' />
+                            <span className='font-semibold'>Player Timeout!</span>
+                        </div>
+                        <Button
+                            onClick={onForceFold}
+                            variant='destructive'
+                            size='sm'
+                            className='animate-pulse'
+                        >
+                            Force Fold Inactive Player
+                        </Button>
+                    </div>
+                )}
+
+                {isTimeExpired && isMyTurn && (
+                    <div className='flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-red-500'>
+                        <AlertTriangle className='h-5 w-5 animate-pulse' />
+                        <span className='text-sm font-semibold'>Your time is up! Act now or be force-folded.</span>
+                    </div>
+                )}
+
+                {isMyTurn && (
                     <>
                         <div className='flex flex-col gap-2'>
                             <label className='text-center font-poker text-xl text-neutral-300' htmlFor='bet-amount'>

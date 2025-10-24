@@ -7,7 +7,7 @@ import { truncate } from '~/lib/utils';
 import { gameConfig } from '~/lib/viem';
 
 import MotionNumber from 'motion-number';
-import { isAddress, toHex, zeroAddress } from 'viem';
+import { isAddress, toHex, zeroAddress, type Hex } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 
 import { GameOverlay } from '~/components/overlays';
@@ -25,6 +25,12 @@ import { CommunityCards } from './_components/community-cards';
 import { DeclareResult } from './_components/declare-result';
 
 import { RefreshCcw } from 'lucide-react';
+
+// Define types for contract responses
+interface PlayerData {
+  addr: string;
+  folded: boolean;
+}
 
 const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
   const contractAddress = isAddress(params.id) ? params.id : zeroAddress;
@@ -105,25 +111,32 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
   });
 
   const data = useMemo(() => {
-    const currentRound = getCurrentRound(res?.[0].result ?? 0);
-    const potAmount = Number(res?.[1].result ?? 0);
-    const highestBet = Number(res?.[2].result ?? 0);
-    const winnerAddress = res?.[3].result?.[0] ?? zeroAddress;
+    const currentRound = getCurrentRound(Number((res?.[0]?.result as bigint | undefined) ?? 0n));
+    const potAmount = Number((res?.[1]?.result as bigint | undefined) ?? 0n);
+    const highestBet = Number((res?.[2]?.result as bigint | undefined) ?? 0n);
+    const winnerData = res?.[3]?.result as readonly [string, bigint] | undefined;
+    const winnerAddress = (winnerData?.[0] ?? zeroAddress) as `0x${string}`;
+    const nextPlayerData = res?.[4]?.result as PlayerData | undefined;
     const nextTurn =
-      res?.[4].result?.addr === address
+      nextPlayerData?.addr === address
         ? 'Me'
-        : truncate(res?.[4].result?.addr ?? '', 8);
-    const playerCount = Number(res?.[5].result ?? 0);
-    const gameEnded = res?.[6].result?.[0] !== zeroAddress;
-    const communityCards = res?.[7].result?.map((c) => c) ?? [];
-    const playerCards = res?.[8].result?.map((c) => c) ?? [];
-    const deck =
-      res?.[9].result?.map((c) => c.map((i) => toHex(i, { size: 32 }))) ?? [];
-    const pendingCommunityCards = (res?.[10].result ?? [])
+        : truncate(nextPlayerData?.addr ?? '', 8);
+    const playerCount = Number((res?.[5]?.result as bigint | undefined) ?? 0n);
+    const gameEndedData = res?.[6]?.result as readonly [string, bigint] | undefined;
+    const gameEnded = gameEndedData?.[0] !== zeroAddress;
+    const communityCardsRaw = (res?.[7]?.result as number[] | undefined) ?? [];
+    const communityCards = communityCardsRaw.map((c) => c);
+    const playerCardsRaw = (res?.[8]?.result as number[] | undefined) ?? [];
+    const playerCards = playerCardsRaw.map((c) => c);
+    const deckRaw = (res?.[9]?.result as bigint[][] | undefined) ?? [];
+    const deck: Hex[][] = deckRaw.map((c) => c.map((i) => toHex(i, { size: 32 })));
+    const pendingPlayerCardsRaw = (res?.[10]?.result as number[] | undefined) ?? [];
+    const pendingPlayerCards = pendingPlayerCardsRaw
       .filter((c) => c !== 0)
       .map((c) => c);
 
-    const pendingPlayerCards = (res?.[11].result ?? [])
+    const pendingCommunityCardsRaw = (res?.[11]?.result as number[] | undefined) ?? [];
+    const pendingCommunityCards = pendingCommunityCardsRaw
       .filter((c) => c !== 0)
       .map((c) => c);
 

@@ -26,6 +26,10 @@ contract Game is IGame, Shuffle {
     uint8 public _nextBet;
     uint256 public _highestBet;
 
+    // Timeout mechanism (2 minutes per action)
+    uint256 public constant ACTION_TIMEOUT = 120; // 2 minutes in seconds
+    uint256 public _lastActionTimestamp;
+
     // Game State
     bool public _gameStarted;
     GameRound public _currentRound;
@@ -47,6 +51,7 @@ contract Game is IGame, Shuffle {
         // Shuffle verification done off-chain for Lisk compatibility
         _totalPlayers++;
         _isPlayer[_initialPlayer.addr] = true;
+        _lastActionTimestamp = block.timestamp;
     }
 
     /// =================================================================
@@ -76,14 +81,12 @@ contract Game is IGame, Shuffle {
         _isPlayer[_player.addr] = true;
     }
 
-    function startGame() public {
-        if (_gameStarted) {
-            revert GameAlreadyStarted();
-        }
-        if (_totalPlayers < 2) {
-            revert NotEnoughPlayers();
-        }
+    function startGame() public onlyPlayer(msg.sender) {
+        if (_gameStarted) revert GameAlreadyStarted();
+        if (_totalPlayers < 2) revert NotEnoughPlayers();
+        
         _gameStarted = true;
+        _lastActionTimestamp = block.timestamp;
         Point[] memory publicKeys = new Point[](_totalPlayers);
         for (uint256 i = 0; i < _totalPlayers; i++) {
             publicKeys[i] = _players[i].publicKey;
@@ -119,42 +122,63 @@ contract Game is IGame, Shuffle {
     }
 
     function placeBet(uint256 _amount) public onlyPlayer(msg.sender) {
-        _isPlayerTurn(msg.sender);
-        _isValidBet(_amount);
-        _isShuffled();
-        _isPlayerNotFolded(msg.sender);
-
-        if (_currentRound == GameRound.End) {
-            revert GameEnded();
-        }
-
-        if (_nextBet == _totalPlayers - 1) {
-            _nextBet = 0;
-            _nextRound();
-        } else {
-            _nextBet++;
-        }
+        // Validate game state
+        if (!_gameStarted) revert GameNotStarted();
+        if (_totalShuffles < _totalPlayers) revert NotShuffled();
+        if (_currentRound == GameRound.End) revert GameEnded();
+        
+        // Validate player turn
+        if (_players[_nextBet].addr != msg.sender) revert InvalidBetSequence();
+        
+        // Validate player hasn't folded
+        if (_isFolded[msg.sender]) revert PlayerFolded();
+        
+        // Validate bet amount
+        if (_amount < _highestBet) revert InvalidBetAmount();
 
         _bets[msg.sender] += _amount;
-        if (_amount > _highestBet) {
-            _highestBet = _amount;
+        if (_bets[msg.sender] > _highestBet) {
+            _highestBet = _bets[msg.sender];
+        }
+        _lastActionTimestamp = block.timestamp; // Reset timeout
+        _nextBet++;
+
+        if (_nextBet == _totalPlayers) {
+            _nextBet = 0;
+            _nextRound();
         }
     }
 
     function fold() public onlyPlayer(msg.sender) {
-        _isPlayerTurn(msg.sender);
-        _isShuffled();
-        if (_isFolded[msg.sender]) {
-            revert AlreadyFolded();
-        }
+        // Validate game state
+        if (!_gameStarted) revert GameNotStarted();
+        if (_totalShuffles < _totalPlayers) revert NotShuffled();
+        if (_currentRound == GameRound.End) revert GameEnded();
+        
+        // Validate player turn
+        if (_players[_nextBet].addr != msg.sender) revert InvalidBetSequence();
+        
+        // Validate player hasn't already folded
+        if (_isFolded[msg.sender]) revert AlreadyFolded();
+        
         _isFolded[msg.sender] = true;
         _totalFolds++;
+        _lastActionTimestamp = block.timestamp; // Reset timeout
+        _nextBet++;
+
+        if (_totalFolds == _totalPlayers - 1) {
+            _currentRound = GameRound.End;
+        }
+
+        if (_nextBet == _totalPlayers) {
+            _nextBet = 0;
+            _nextRound();
+        }
     }
 
     function chooseCards(uint8[3] memory cards) public onlyPlayer(msg.sender) {
-        if (_currentRound != GameRound.End) {
-            revert GameNotEnded();
-        }
+        if (!_gameStarted) revert GameNotStarted();
+        if (_currentRound != GameRound.End) revert GameNotEnded();
 
         // check if three cards are in community cards.
         for (uint8 i = 0; i < 3; i++) {
@@ -186,7 +210,44 @@ contract Game is IGame, Shuffle {
         _playerCards[playerIndex][4] = cards[2];
     }
 
-    function declareWinner() public {
+    function forceFold() public onlyPlayer(msg.sender) {
+        if (!_gameStarted) revert GameNotStarted();
+        if (_totalShuffles < _totalPlayers) revert NotShuffled();
+        if (_currentRound == GameRound.End) revert GameEnded();
+        
+        Player memory currentPlayer = _players[_nextBet];
+        
+        // Check if timeout has expired
+        if (block.timestamp <= _lastActionTimestamp + ACTION_TIMEOUT) {
+            revert ActionTimeoutNotExpired();
+        }
+        
+        // Check player hasn't already folded
+        if (_isFolded[currentPlayer.addr]) {
+            revert AlreadyFolded();
+        }
+        
+        // Force fold the inactive player
+        _isFolded[currentPlayer.addr] = true;
+        _totalFolds++;
+        _bets[currentPlayer.addr] = 0; // Forfeit stake
+        _lastActionTimestamp = block.timestamp;
+        _nextBet++;
+        
+        // Check if game should end
+        if (_totalFolds == _totalPlayers - 1) {
+            _currentRound = GameRound.End;
+        }
+        
+        if (_nextBet == _totalPlayers) {
+            _nextBet = 0;
+            _nextRound();
+        }
+    }
+
+    function declareWinner() public onlyPlayer(msg.sender) {
+        if (!_gameStarted) revert GameNotStarted();
+        if (_currentRound != GameRound.End) revert GameNotEnded();
         if (winner.addr != address(0)) {
             revert WinnerAlreadyDeclared();
         }
@@ -247,6 +308,13 @@ contract Game is IGame, Shuffle {
 
     function nextPlayer() public view returns (Player memory) {
         return _players[_nextBet];
+    }
+
+    function getTimeRemaining() public view returns (uint256) {
+        if (block.timestamp >= _lastActionTimestamp + ACTION_TIMEOUT) {
+            return 0;
+        }
+        return (_lastActionTimestamp + ACTION_TIMEOUT) - block.timestamp;
     }
 
     function getPotAmount() public view returns (uint256) {

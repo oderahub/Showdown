@@ -13,7 +13,7 @@ import {
   waitForTransactionReceipt,
 } from '@wagmi/core';
 import { toast } from 'sonner';
-import { hexToBigInt, zeroAddress } from 'viem';
+import { hexToBigInt, zeroAddress, type Hex } from 'viem';
 import { useAccount, useReadContracts, useWriteContract } from 'wagmi';
 import type { OverlayProps } from '~/types';
 
@@ -53,10 +53,9 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   });
 
   const { didPlayerShuffle, playersShuffled, totalPlayers } = useMemo(() => {
-    console.log(data);
-    const totalPlayers = data?.[0].result ?? 1;
-    const totalShuffles = Number(data?.[1].result ?? 0);
-    const shuffled = data?.[2].result ?? false;
+    const totalPlayers = Number((data?.[0]?.result as bigint | undefined) ?? 1n);
+    const totalShuffles = Number((data?.[1]?.result as bigint | undefined) ?? 0n);
+    const shuffled = (data?.[2]?.result as boolean | undefined) ?? false;
 
     const didAllShuffle = totalShuffles === totalPlayers;
 
@@ -72,13 +71,16 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const id = toast.loading('Shuffling Cards...');
     try {
       const gameKey = await getGameKey(contractAddress);
-      const totalShuffles = await readContract(wagmiConfig, {
+      const totalShufflesRaw = await readContract(wagmiConfig, {
         ...gameConfig,
         address: contractAddress,
         functionName: '_totalShuffles',
       });
 
-      if (Number(totalShuffles) === 0) {
+      // Type assertion for total shuffles
+      const totalShufflesCount = Number((totalShufflesRaw as bigint | undefined) ?? 0n);
+
+      if (totalShufflesCount === 0) {
         console.log('Start get masked cards.');
         const { maskedCards, pkc: _pkc } = await getMaskedCads(gameKey);
         console.log('Done get masked cards.');
@@ -94,7 +96,6 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
           ...gameConfig,
           address: contractAddress,
           functionName: 'initShuffle',
-          // @ts-expect-error safe as we have 52 elements in each
           args: [pkc, newDeck],
         });
         const hash = await writeContractAsync(simulated.request);
@@ -102,8 +103,7 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       } else {
         const oldDeck = await getDeck(contractAddress);
 
-        // @ts-expect-error safe as we have 4 elements in each
-        const res = await shuffle(oldDeck, gameKey);
+        const res = await shuffle(oldDeck as [Hex, Hex, Hex, Hex][], gameKey);
         console.log(res);
         const newDeck = res.shuffled.cards.map((o) =>
           o.map((i) => hexToBigInt(i))
@@ -112,7 +112,6 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
           ...gameConfig,
           address: contractAddress,
           functionName: 'shuffle',
-          // @ts-expect-error safe as we have 52 elements
           args: [newDeck],
         });
         const hash = await writeContractAsync(simulated.request);
@@ -144,7 +143,7 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         </div>
         <div className='py-5 text-center font-poker text-5xl'>
           {playersShuffled} / {totalPlayers}
-        </div>{' '}
+        </div>
         <div className='flex w-full items-center justify-center font-poker text-3xl'>
           {!didPlayerShuffle ? (
             <Button className='font-sans' onClick={onShuffle}>

@@ -17,6 +17,13 @@ interface ResultsProps {
   totalPlayers: number;
 }
 
+// Define types for contract responses
+interface PlayerData {
+  addr: string;
+  folded: boolean;
+  // Add other fields from your Player struct if needed
+}
+
 export const Results = ({ contractAddress, totalPlayers }: ResultsProps) => {
   return (
     <div className='absolute bottom-12 left-12'>
@@ -62,23 +69,35 @@ const PlayerCardForPlayer = ({
           functionName: '_players',
           args: [BigInt(playerIndex)],
         });
+
+        // Type assertion for player data
+        const playerData = playerAddr as PlayerData;
+
         const cards = await readContract(wagmiConfig, {
           ...gameConfig,
           address: contractAddress,
           functionName: 'getPlayerRevealedCards',
-          args: [playerAddr[0]],
+          args: [playerData.addr],
         });
+
+        // Type assertion for cards array
+        const revealedCards = cards as number[];
+
         const weight = await readContract(wagmiConfig, {
           ...gameConfig,
           address: contractAddress,
           functionName: '_weights',
           args: [BigInt(playerIndex)],
         });
+
+        // Type assertion for weight
+        const playerWeight = weight as bigint;
+
         console.log(cards);
         return {
-          cards: cards.map((c) => c),
-          weight,
-          playerAddress: playerAddr[0],
+          cards: revealedCards.map((c) => c),
+          weight: playerWeight,
+          playerAddress: playerData.addr,
         };
       } catch (error) {
         console.log(error);
@@ -95,11 +114,11 @@ const PlayerCardForPlayer = ({
     <div className='flex flex-col gap-2'>
       <div className='flex flex-row justify-between text-base'>
         <div>Player: {truncate(data?.playerAddress ?? zeroAddress, 8)}</div>
-        <div>Weight: {(data?.weight ?? 0).toLocaleString()}</div>
+        <div>Weight: {(data?.weight ?? BigInt(0)).toLocaleString()}</div>
       </div>
       <div className='item-center flex flex-row gap-2'>
-        {(data?.cards ?? []).map((cardId) => (
-          <PokerCard key={cardId} cardId={cardId} className='w-24' />
+        {(data?.cards ?? []).map((cardId, idx) => (
+          <PokerCard key={`${String(cardId)}-${String(idx)}`} cardId={cardId} className='w-24' />
         ))}
       </div>
     </div>

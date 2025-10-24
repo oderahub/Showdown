@@ -1,5 +1,6 @@
 import AddressConfig from 'public/config.json';
 import { liskSepolia } from 'viem/chains';
+import type { Abi } from 'viem';
 import {
   type Config,
   cookieStorage,
@@ -64,10 +65,11 @@ export const wagmiConfig: Config = createConfig({
 });
 
 export const gameFactoryConfig = {
-  abi: GAME_FACTORY_ABI,
+  abi: GAME_FACTORY_ABI as Abi,
   address: AddressConfig.GAME_FACTORY_ADDRESS as `0x${string}`,
-} as const;
+};
 
 export const gameConfig = {
-  abi: GAME_ABI,
-} as const;
+  abi: GAME_ABI as Abi,
+  chainId: liskSepolia.id,
+};

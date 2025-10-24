@@ -58,11 +58,12 @@ export const GameOverlay = ({ contractAddress, refresh }: OverlayProps) => {
       | 'choose-cards'
       | 'ended';
 
-    const totalPlayers = data?.[0].result ?? 0;
-    const totalShuffles = Number(data?.[1].result ?? 0);
-    const currentRound = Number(data?.[2].result ?? 0); // 5 is end
-    const winnerAddr = data?.[3].result?.[0] ?? zeroAddress;
-    const hasGameStarted = data?.[4].result ?? false;
+    const totalPlayers = Number((data?.[0]?.result as bigint | undefined) ?? 0n);
+    const totalShuffles = Number((data?.[1]?.result as bigint | undefined) ?? 0n);
+    const currentRound = Number((data?.[2]?.result as bigint | undefined) ?? 0n); // 5 is end
+    const winnerData = data?.[3]?.result as readonly [string, bigint] | undefined;
+    const winnerAddr = winnerData?.[0] ?? zeroAddress;
+    const hasGameStarted = (data?.[4]?.result as boolean | undefined) ?? false;
 
     if (totalPlayers === 1 || !hasGameStarted) {
       currentStage = 'waiting';

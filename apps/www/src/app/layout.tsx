@@ -11,6 +11,7 @@ import { Web3Provider } from '~/providers';
 import '~/styles/globals.css';
 
 import { Toaster } from '~/components/ui/sonner';
+import { AgeVerificationModal } from '~/components/age-verification';
 
 import { ThemeProvider } from '../providers/theme-provider';
 
@@ -36,6 +37,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
       <body className={`font-sans ${GeistSans.variable} ${pokerFont.variable}`}>
         <ThemeProvider>
           <Web3Provider initialState={initialState}>
+            <AgeVerificationModal />
             <Navbar />
             {children}
             <Toaster />

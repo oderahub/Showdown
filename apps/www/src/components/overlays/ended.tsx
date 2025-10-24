@@ -45,8 +45,8 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
     const winnerAddress = winnerData?.[0] ?? '';
     const winnerWeightRaw = winnerData?.[1] ?? 0n;
     const winnerWeight = typeof winnerWeightRaw === 'bigint' ? winnerWeightRaw : BigInt(winnerWeightRaw);
-    const totalPot = data?.[1]?.result ?? 0n;
-    const totalPlayersResult = data?.[2]?.result ?? 0n;
+    const totalPot = (data?.[1]?.result as bigint | undefined) ?? 0n;
+    const totalPlayersResult = (data?.[2]?.result as bigint | undefined) ?? 0n;
     const totalPlayers = typeof totalPlayersResult === 'bigint' ? totalPlayersResult : BigInt(totalPlayersResult);
 
     const isWinner = winnerAddress.toLowerCase() === address?.toLowerCase();

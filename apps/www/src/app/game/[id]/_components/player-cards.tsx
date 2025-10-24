@@ -28,6 +28,15 @@ interface PlayerCardsProps {
   deck: Hex[][];
 }
 
+// Define the reveal token type based on your contract
+interface RevealToken {
+  player: string;
+  token: {
+    x: bigint;
+    y: bigint;
+  };
+}
+
 export const PlayerCards = ({
   contractAddress,
   cards,
@@ -126,7 +135,11 @@ const PlayerCard = ({ cardIndex, contractAddress, deck }: PlayerCard) => {
           functionName: 'getRevealTokens',
           args: [cardIndex],
         });
-        const rTokens = res
+        
+        // Type assertion for the response
+        const revealTokens = res as RevealToken[];
+        
+        const rTokens = revealTokens
           .filter((t) => t.player !== address)
           .map(
             (r) =>

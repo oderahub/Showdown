@@ -73,11 +73,12 @@ export const CreateGame = () => {
         functionName: '_nextGameId',
         args: [],
       });
-      const gameAddress = await readContract(wagmiConfig, {
+      const gameAddressRaw = await readContract(wagmiConfig, {
         ...gameFactoryConfig,
         functionName: '_games',
         args: [BigInt(Number(gameId) - 1)],
       });
+      const gameAddress = gameAddressRaw as string;
 
       toast.success('Game Created Successfully!', {
         description: `ID: ${gameAddress}`,

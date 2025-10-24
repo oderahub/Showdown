@@ -25,26 +25,35 @@ export const GameCard = ({ id }: GameCardProps) => {
         functionName: '_games',
         args: [BigInt(String(id))],
       });
+
+      // Type assertion for game address
+      const gameAddress = addr as `0x${string}`;
+
       const data = await readContracts(wagmiConfig, {
         contracts: [
           {
             ...gameConfig,
-            address: addr,
+            address: gameAddress,
             functionName: '_totalPlayers',
             args: [],
           },
           {
             ...gameConfig,
-            address: addr,
+            address: gameAddress,
             functionName: '_currentRound',
             args: [],
           },
         ],
       });
+
+      // Type assertions for contract responses
+      const totalPlayersResult = (data[0].result as bigint | undefined) ?? 0n;
+      const currentRoundResult = (data[1].result as bigint | undefined) ?? 0n;
+
       return {
-        gameAddress: addr,
-        totalPlayers: (data[0].result ?? 0).toLocaleString(),
-        currentRound: getCurrentRound(data[1].result ?? 0),
+        gameAddress,
+        totalPlayers: totalPlayersResult.toLocaleString(),
+        currentRound: getCurrentRound(Number(currentRoundResult)),
       };
     },
   });

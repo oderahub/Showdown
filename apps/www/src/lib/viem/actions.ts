@@ -9,13 +9,17 @@ export const getDeck = async (gameAddress: `0x${string}`) => {
     address: gameAddress,
     functionName: 'getDeck',
   });
-  return deck.map((o) =>
+
+  // Type assertion for deck response
+  const deckData = deck as bigint[][];
+
+  return deckData.map((o) =>
     o.map((i) => {
       const hex = i.toString(16);
       const padded = hex.padStart(64, '0');
       return `0x${padded}`;
     })
-  );
+  ) as Hex[][];
 };
 
 export const getGameKey = async (gameAddress: `0x${string}`) => {
@@ -25,7 +29,10 @@ export const getGameKey = async (gameAddress: `0x${string}`) => {
     functionName: 'gameKey',
   });
 
-  return gameKey.map((i) => {
+  // Type assertion for game key response
+  const gameKeyData = gameKey as bigint[];
+
+  return gameKeyData.map((i) => {
     const hex = i.toString(16);
     const padded = hex.padStart(64, '0');
     return `0x${padded}`;
