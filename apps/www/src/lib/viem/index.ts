@@ -1,4 +1,3 @@
-import AddressConfig from 'public/config.json';
 import { liskSepolia } from 'viem/chains';
 import type { Abi } from 'viem';
 import {
@@ -14,6 +13,13 @@ import { env } from '~/env';
 import { GAME_ABI, GAME_FACTORY_ABI } from './abi';
 
 export const projectId = env.NEXT_PUBLIC_WALLETCONNECT_ID;
+
+// Contract addresses - deployed on Lisk Sepolia
+const AddressConfig = {
+  GAME_FACTORY_ADDRESS: '0xe86553AE8f33924b5B7174F64ceaCbeff473548D',
+  REVEAL_VERIFIER: '0x49cFFa95ffB77d398222393E3f0C4bFb5D996321',
+  SHUFFLE_VERIFIER: '0x9193c64f6D57eC9AC22d43c51389d970828D1b10',
+};
 
 const metadata = {
   name: 'Texas Hold\'em ZK Poker',
