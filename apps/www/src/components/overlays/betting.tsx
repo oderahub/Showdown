@@ -104,12 +104,15 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         setLocalTimeRemaining(contractTimeRemaining);
     }, [contractTimeRemaining]);
 
-    // Client-side countdown for smooth timer display
+    // Client-side countdown for smooth timer display - restart when turn changes
     useEffect(() => {
         // Clear any existing interval
         if (timerIntervalRef.current) {
             clearInterval(timerIntervalRef.current);
         }
+
+        // Reset local timer to contract value when turn changes
+        setLocalTimeRemaining(contractTimeRemaining);
 
         // Start countdown
         timerIntervalRef.current = setInterval(() => {
@@ -125,7 +128,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, []);
+    }, [nextPlayerAddress, contractTimeRemaining]);
 
     const formatTime = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -242,7 +245,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     };
 
     return (
-        <Overlay variant='compact'>
+        <Overlay minimizable title={`${roundName} Round`} variant='compact'>
             <div className='flex w-full flex-col gap-3'>
                 <div className='text-center font-poker text-4xl'>{roundName} Round</div>
 

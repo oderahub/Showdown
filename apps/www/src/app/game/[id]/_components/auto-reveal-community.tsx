@@ -32,10 +32,18 @@ export const AutoRevealCommunity = ({
   const isSubmittingRef = useRef(false);
   const lastSubmittedRef = useRef<string>('');
 
+  // Create stable cardKey for dependency tracking
+  const cardKey = pendingCommunityCards.length > 0
+    ? [...pendingCommunityCards].sort((a, b) => a - b).join(',')
+    : '';
+
   useEffect(() => {
     const submitRevealTokens = async () => {
       // Guard: Check if already submitting
-      if (isSubmittingRef.current) return;
+      if (isSubmittingRef.current) {
+        console.log('[AutoReveal] Already submitting, skipping...');
+        return;
+      }
 
       // Guard: Check if we have pending community cards
       if (pendingCommunityCards.length === 0) return;
@@ -43,9 +51,17 @@ export const AutoRevealCommunity = ({
       // Guard: Check if wallet connected
       if (!address) return;
 
-      // Generate unique key for this set of cards to avoid duplicate submissions
-      const cardKey = pendingCommunityCards.sort((a, b) => a - b).join(',');
-      if (lastSubmittedRef.current === cardKey) return;
+      // Guard: Check if already submitted this set of cards
+      if (lastSubmittedRef.current === cardKey) {
+        console.log('[AutoReveal] Already submitted these cards, skipping...');
+        return;
+      }
+
+      // Guard: Check if we have deck data
+      if (deck.length === 0) {
+        console.log('[AutoReveal] Deck not ready, skipping...');
+        return;
+      }
 
       try {
         isSubmittingRef.current = true;
@@ -53,6 +69,10 @@ export const AutoRevealCommunity = ({
 
         const cards: [Hex, Hex, Hex, Hex][] = [];
         for (const i of pendingCommunityCards) {
+          if (!deck[i]) {
+            console.error('[AutoReveal] Card not found in deck:', i);
+            return;
+          }
           cards.push(deck[i] as [Hex, Hex, Hex, Hex]);
         }
 
@@ -76,14 +96,14 @@ export const AutoRevealCommunity = ({
 
         await waitForTransactionReceipt(wagmiConfig, { hash });
 
-        // Mark as submitted
+        // Mark as submitted BEFORE refresh to prevent race condition
         lastSubmittedRef.current = cardKey;
 
         console.log('[AutoReveal] Community cards revealed successfully');
         await refresh();
       } catch (error) {
         console.error('[AutoReveal] Failed to submit reveal tokens:', error);
-        // Reset to allow retry
+        // Reset to allow retry on next effect run
         isSubmittingRef.current = false;
       } finally {
         isSubmittingRef.current = false;
@@ -91,7 +111,10 @@ export const AutoRevealCommunity = ({
     };
 
     void submitRevealTokens();
-  }, [address, contractAddress, deck, getKey, pendingCommunityCards, refresh, writeContractAsync]);
+    // Only depend on data values that actually change, not function references.
+    // getKey, refresh, writeContractAsync are used but omitted to prevent re-triggers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omitting function deps to prevent duplicate transactions
+  }, [address, contractAddress, cardKey]);
 
   return null; // This is a headless component
 };

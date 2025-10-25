@@ -112,9 +112,17 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
   });
 
   const data = useMemo(() => {
-    const currentRound = getCurrentRound(Number((res?.[0]?.result as bigint | undefined) ?? 0n));
-    const potAmount = Number((res?.[1]?.result as bigint | undefined) ?? 0n);
-    const highestBet = Number((res?.[2]?.result as bigint | undefined) ?? 0n);
+    // Helper to safely convert to number, handling objects and undefined
+    const safeToNumber = (value: unknown): number => {
+      if (value === null || value === undefined) return 0;
+      if (typeof value === 'bigint') return Number(value);
+      if (typeof value === 'number') return value;
+      return 0;
+    };
+
+    const currentRound = getCurrentRound(safeToNumber(res?.[0]?.result));
+    const potAmount = safeToNumber(res?.[1]?.result);
+    const highestBet = safeToNumber(res?.[2]?.result);
     const winnerData = res?.[3]?.result as readonly [string, bigint] | undefined;
     const winnerAddress = (winnerData?.[0] ?? zeroAddress) as `0x${string}`;
     const nextPlayerData = res?.[4]?.result as PlayerData | undefined;
@@ -122,7 +130,7 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
       nextPlayerData?.addr === address
         ? 'Me'
         : truncate(nextPlayerData?.addr ?? '', 8);
-    const playerCount = Number((res?.[5]?.result as bigint | undefined) ?? 0n);
+    const playerCount = safeToNumber(res?.[5]?.result);
     const gameEndedData = res?.[6]?.result as readonly [string, bigint] | undefined;
     const gameEnded = gameEndedData?.[0] !== zeroAddress;
     const communityCardsRaw = (res?.[7]?.result as number[] | undefined) ?? [];

@@ -25,6 +25,26 @@ export const Overlay = ({
   const [isMinimized, setIsMinimized] = useState(false);
 
   if (variant === 'compact') {
+    // Compact mode minimized - Show compact indicator at bottom
+    if (minimizable && isMinimized) {
+      return (
+        <div className='pointer-events-none fixed inset-0 z-40'>
+          <button
+            type='button'
+            className='pointer-events-auto fixed bottom-8 left-[50%] z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
+            style={{
+              backgroundImage: `url(${GoldBG.src})`,
+              objectFit: 'cover',
+            }}
+            onClick={() => setIsMinimized(false)}
+          >
+            <div className='font-poker text-lg text-amber-400'>{title}</div>
+            <Maximize2 className='h-5 w-5 text-amber-400' />
+          </button>
+        </div>
+      );
+    }
+
     // Compact mode: Fixed bottom-center, doesn't block the game view
     return (
       <div className='pointer-events-none fixed inset-0 z-40'>
@@ -37,7 +57,7 @@ export const Overlay = ({
         >
           <div
             className={cn(
-              'min-h-[12rem] w-full min-w-[32rem] max-w-[40rem] rounded-2xl p-6',
+              'relative min-h-[12rem] w-full min-w-[32rem] max-w-[40rem] rounded-2xl p-6',
               className
             )}
             style={{
@@ -46,6 +66,15 @@ export const Overlay = ({
             }}
             {...props}
           >
+            {Boolean(minimizable) && (
+              <button
+                type='button'
+                className='absolute right-4 top-4 rounded-full bg-amber-500/20 p-2 transition-all hover:bg-amber-500/40'
+                onClick={() => setIsMinimized(true)}
+              >
+                <Minimize2 className='h-5 w-5 text-amber-400' />
+              </button>
+            )}
             {children}
           </div>
         </div>
@@ -59,12 +88,12 @@ export const Overlay = ({
       <div className='pointer-events-none fixed inset-0 z-40'>
         <button
           type='button'
-          onClick={() => setIsMinimized(false)}
           className='pointer-events-auto fixed bottom-8 left-[50%] z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
           style={{
             backgroundImage: `url(${GoldBG.src})`,
             objectFit: 'cover',
           }}
+          onClick={() => setIsMinimized(false)}
         >
           <div className='font-poker text-lg text-amber-400'>{title}</div>
           <Maximize2 className='h-5 w-5 text-amber-400' />
@@ -97,8 +126,8 @@ export const Overlay = ({
           {Boolean(minimizable) && (
             <button
               type='button'
-              onClick={() => setIsMinimized(true)}
               className='absolute right-4 top-4 rounded-full bg-amber-500/20 p-2 transition-all hover:bg-amber-500/40'
+              onClick={() => setIsMinimized(true)}
             >
               <Minimize2 className='h-5 w-5 text-amber-400' />
             </button>

@@ -43,7 +43,7 @@ interface CommunityCardProps {
 const CommunityCard = ({ contractAddress, cardIndex }: CommunityCardProps) => {
   const data = useQuery({
     queryKey: ['community-card', contractAddress, cardIndex],
-    initialData: -1,
+    initialData: null,
     refetchInterval: 2000,
     queryFn: async () => {
       try {
@@ -55,10 +55,19 @@ const CommunityCard = ({ contractAddress, cardIndex }: CommunityCardProps) => {
         });
         return card;
       } catch (error) {
-        return -1;
+        return null;
       }
     },
   });
+
+  // Show loading state while card is being revealed
+  if (data.data === null || data.data === undefined || data.data === -1) {
+    return (
+      <div className='flex h-28 w-20 items-center justify-center rounded-lg bg-gray-700/50 shadow-lg'>
+        <div className='h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent' />
+      </div>
+    );
+  }
 
   return <PokerCard cardId={data.data as number} className='w-20 rounded-lg' />;
 };
