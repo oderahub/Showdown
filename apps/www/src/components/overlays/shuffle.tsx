@@ -136,7 +136,7 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
   };
 
   return (
-    <Overlay>
+    <Overlay minimizable title='Shuffle Stage'>
       <div className='w-full'>
         <div className='flex flex-row items-center justify-center gap-2 text-center font-poker text-4xl'>
           Shuffle Stage

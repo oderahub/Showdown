@@ -20,6 +20,7 @@ import {
   PlayerCards,
   Results,
 } from './_components';
+import { AutoRevealCommunity } from './_components/auto-reveal-community';
 import { ChooseCards } from './_components/choose-cards';
 import { CommunityCards } from './_components/community-cards';
 import { DeclareResult } from './_components/declare-result';
@@ -140,8 +141,9 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
       .filter((c) => c !== 0)
       .map((c) => c);
 
-    const pendingCards = [...pendingCommunityCards, ...pendingPlayerCards];
-    const isPendingToAddTokens = pendingCards.length > 0;
+    // Only show manual button for pending player cards (opponent hole cards)
+    // Community cards are auto-revealed
+    const isPendingToAddTokens = pendingPlayerCards.length > 0;
 
     return {
       currentRound,
@@ -155,7 +157,8 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
       playerCards,
       deck,
       isPendingToAddTokens,
-      pendingCards,
+      pendingPlayerCards,
+      pendingCommunityCards,
     };
   }, [address, res]);
 
@@ -206,17 +209,26 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
         cards={data.communityCards}
         contractAddress={contractAddress}
       />
+      {/* Auto-reveal community cards - they should be PUBLIC in poker */}
+      <AutoRevealCommunity
+        contractAddress={contractAddress}
+        deck={data.deck}
+        pendingCommunityCards={data.pendingCommunityCards}
+        refresh={refresh}
+      />
+      {/* Manual reveal for opponent hole cards */}
       <AddPendingCards
         contractAddress={contractAddress}
         deck={data.deck}
         isPending={data.isPendingToAddTokens}
-        pendingCards={data.pendingCards}
+        pendingCards={data.pendingPlayerCards}
         refresh={refresh}
       />
       {data.currentRound === 'End' && !data.gameEnded ? (
         <ChooseCards
           cards={data.communityCards}
           contractAddress={contractAddress}
+          refresh={refresh}
         />
       ) : null}
       <div className='absolute bottom-48 right-12 z-[45]'>

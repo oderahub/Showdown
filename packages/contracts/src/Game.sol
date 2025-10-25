@@ -40,6 +40,8 @@ contract Game is IGame, Shuffle {
     mapping(uint256 => uint8[5]) public _playerCards;
     uint8[5] public _communityCards;
     uint8 public _nextCard;
+    mapping(address => bool) public _hasChosenCards;
+    uint256 public _totalChoices;
 
     /// =================================================================
     ///                         Constructor
@@ -158,13 +160,13 @@ contract Game is IGame, Shuffle {
         if (!_gameStarted) revert GameNotStarted();
         if (_totalShuffles < _totalPlayers) revert NotShuffled();
         if (_currentRound == GameRound.End) revert GameEnded();
-        
+
         // Validate player turn
         if (_players[_nextBet].addr != msg.sender) revert InvalidBetSequence();
-        
+
         // Validate player hasn't already folded
         if (_isFolded[msg.sender]) revert AlreadyFolded();
-        
+
         _isFolded[msg.sender] = true;
         _totalFolds++;
         _lastActionTimestamp = block.timestamp; // Reset timeout
@@ -172,6 +174,8 @@ contract Game is IGame, Shuffle {
 
         if (_totalFolds == _totalPlayers - 1) {
             _currentRound = GameRound.End;
+            // Auto-declare winner if only 1 player remains
+            _autoDeclareWinnerIfOnlyOne();
         }
 
         if (_nextBet == _totalPlayers) {
@@ -212,37 +216,51 @@ contract Game is IGame, Shuffle {
         _playerCards[playerIndex][2] = cards[0];
         _playerCards[playerIndex][3] = cards[1];
         _playerCards[playerIndex][4] = cards[2];
+
+        // Track card selection
+        if (!_hasChosenCards[msg.sender]) {
+            _hasChosenCards[msg.sender] = true;
+            _totalChoices++;
+        }
+
+        // Auto-declare winner if all non-folded players have chosen
+        uint256 playersInGame = _totalPlayers - _totalFolds;
+        if (_totalChoices == playersInGame) {
+            _autoDeclareWinner();
+        }
     }
 
     function forceFold() public onlyPlayer(msg.sender) {
         if (!_gameStarted) revert GameNotStarted();
         if (_totalShuffles < _totalPlayers) revert NotShuffled();
         if (_currentRound == GameRound.End) revert GameEnded();
-        
+
         Player memory currentPlayer = _players[_nextBet];
-        
+
         // Check if timeout has expired
         if (block.timestamp <= _lastActionTimestamp + ACTION_TIMEOUT) {
             revert ActionTimeoutNotExpired();
         }
-        
+
         // Check player hasn't already folded
         if (_isFolded[currentPlayer.addr]) {
             revert AlreadyFolded();
         }
-        
+
         // Force fold the inactive player
         _isFolded[currentPlayer.addr] = true;
         _totalFolds++;
         _bets[currentPlayer.addr] = 0; // Forfeit stake
         _lastActionTimestamp = block.timestamp;
         _nextBet++;
-        
+
         // Check if game should end
         if (_totalFolds == _totalPlayers - 1) {
             _currentRound = GameRound.End;
+            // Auto-declare winner if only 1 player remains
+            _autoDeclareWinnerIfOnlyOne();
         }
-        
+
         if (_nextBet == _totalPlayers) {
             _nextBet = 0;
             _nextRound();
@@ -528,5 +546,122 @@ contract Game is IGame, Shuffle {
         if (_totalShuffles != _totalPlayers) {
             revert NotShuffled();
         }
+    }
+
+    /**
+     * @dev Auto-declares winner if only one player remains (others folded)
+     * This is called after fold() or forceFold() when _totalFolds == _totalPlayers - 1
+     */
+    function _autoDeclareWinnerIfOnlyOne() internal {
+        // Winner already declared
+        if (winner.addr != address(0)) return;
+
+        // Find the remaining player
+        Player memory remainingPlayer;
+        for (uint256 i = 0; i < _totalPlayers; i++) {
+            if (!_isFolded[_players[i].addr]) {
+                remainingPlayer = _players[i];
+                break;
+            }
+        }
+
+        // Declare them as winner
+        winner = remainingPlayer;
+
+        // Calculate pot BEFORE clearing bets
+        uint256 totalPot = getPotAmount();
+
+        // Clear all player bets
+        for (uint256 i = 0; i < _totalPlayers; i++) {
+            _bets[_players[i].addr] = 0;
+        }
+
+        // Give pot to winner
+        _bets[winner.addr] = totalPot;
+
+        // Automatically transfer winnings to winner
+        (bool success, ) = payable(winner.addr).call{value: totalPot}("");
+        if (!success) revert TransferFailed();
+    }
+
+    /**
+     * @dev Auto-declares winner after all non-folded players have chosen their cards
+     * This implements the same logic as declareWinner() but is called automatically
+     * Note: This will silently fail if reveal tokens are not yet submitted
+     */
+    function _autoDeclareWinner() internal {
+        // Winner already declared
+        if (winner.addr != address(0)) return;
+
+        Player[] memory players = getPlayersInGame();
+
+        // Try to reveal cards and compute winner
+        // If this fails due to missing reveal tokens, we silently skip
+        // Players can manually call declareWinner() later
+        uint8[5][] memory revealedCards = new uint8[5][](players.length);
+        PokerCard[5][] memory cards = new PokerCard[5][](players.length);
+        uint256[] memory weights = new uint256[](players.length);
+
+        // Attempt to reveal all cards
+        // This might fail if reveal tokens not submitted yet
+        bool canReveal = true;
+        for (uint256 i = 0; i < players.length; i++) {
+            uint256 index = getPlayerIndex(players[i].addr);
+
+            // Check if we have enough reveal tokens for this player's cards
+            for (uint256 j = 0; j < 5; j++) {
+                uint8 cardIndex = _playerCards[index][j];
+                if (cardIndex != 0) {
+                    RevealToken[] memory tokens = _revealTokens[cardIndex];
+                    // For hole cards (j < 2), need N-1 tokens
+                    // For community cards (j >= 2), need N tokens (all players)
+                    uint256 requiredTokens = j < 2 ? _totalPlayers - 1 : _totalPlayers;
+                    if (tokens.length < requiredTokens) {
+                        canReveal = false;
+                        break;
+                    }
+                }
+            }
+            if (!canReveal) break;
+        }
+
+        // If we can't reveal all cards yet, skip auto-declare
+        if (!canReveal) return;
+
+        // Reveal and evaluate all hands
+        for (uint256 i = 0; i < players.length; i++) {
+            uint256 index = getPlayerIndex(players[i].addr);
+            revealedCards[i] = revealMultipleCards(_playerCards[index]);
+            cards[i] = TexasPoker.toPokerCards(revealedCards[i]);
+            weights[i] = TexasPoker.getWeight(cards[i]);
+            _weights[index] = weights[i];
+        }
+
+        // Find winner
+        uint256 winnerIndex = 0;
+        uint256 highestWeight = weights[0];
+        for (uint256 i = 1; i < weights.length; i++) {
+            if (weights[i] > highestWeight) {
+                highestWeight = weights[i];
+                winnerIndex = i;
+            }
+        }
+
+        winner = players[winnerIndex];
+
+        // Calculate pot BEFORE clearing bets
+        uint256 totalPot = getPotAmount();
+
+        // Clear all player bets
+        for (uint256 i = 0; i < _totalPlayers; i++) {
+            _bets[_players[i].addr] = 0;
+        }
+
+        // Give pot to winner
+        _bets[winner.addr] = totalPot;
+
+        // Automatically transfer winnings to winner
+        (bool success, ) = payable(winner.addr).call{value: totalPot}("");
+        if (!success) revert TransferFailed();
     }
 }

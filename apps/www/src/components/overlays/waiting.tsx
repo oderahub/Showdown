@@ -106,7 +106,7 @@ export const WaitingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     totalPlayersCount >= 2 ? '✓' : `(${String(totalPlayersCount)}/2)`;
 
   return (
-    <Overlay>
+    <Overlay minimizable title='Waiting Stage'>
       <div className='flex w-full flex-col gap-4'>
         <div className='text-center font-poker text-4xl'>Waiting Stage</div>
         <div className='text-center font-poker text-2xl'>

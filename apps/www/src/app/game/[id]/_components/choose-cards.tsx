@@ -12,9 +12,10 @@ import { Button } from '~/components/ui/button';
 interface ChooseCardsProps {
   cards: number[];
   contractAddress: `0x${string}`;
+  refresh: () => Promise<void>;
 }
 
-export const ChooseCards = ({ cards, contractAddress }: ChooseCardsProps) => {
+export const ChooseCards = ({ cards, contractAddress, refresh }: ChooseCardsProps) => {
   const [selected, setSelected] = useState<Record<number, boolean>>({
     0: false,
     1: false,
@@ -46,8 +47,25 @@ export const ChooseCards = ({ cards, contractAddress }: ChooseCardsProps) => {
         functionName: 'chooseCards',
         args: [cardsToChoose],
       });
+
+      toast.loading('Waiting for confirmation...', { id });
       await waitForTransactionReceipt(wagmiConfig, { hash });
-      toast.success('Cards Chosen Successfully!', { id });
+
+      toast.success('Cards Chosen Successfully! Checking for winner...', { id });
+
+      // Refresh game state to check if winner was auto-declared
+      await refresh();
+
+      // Keep polling for winner declaration for up to 10 seconds
+      let attempts = 0;
+      const pollInterval = setInterval(() => {
+        void refresh();
+        attempts++;
+        if (attempts >= 5) {
+          clearInterval(pollInterval);
+          toast.info('Waiting for other players to choose cards...', { duration: 3000 });
+        }
+      }, 2000);
     } catch (error) {
       toast.error(errorHandler(error), { id });
       console.error(error);

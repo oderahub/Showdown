@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { errorHandler, getErrorAction } from '~/lib/utils';
 import { getCurrentRound } from '~/lib/helpers';
@@ -16,11 +16,22 @@ import { Clock, AlertTriangle } from 'lucide-react';
 import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '../ui/dialog';
 
 export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const { address } = useAccount();
     const { writeContractAsync } = useWriteContract();
     const [betAmount, setBetAmount] = useState<string>('0.01');
+    const [showFoldDialog, setShowFoldDialog] = useState(false);
+    const [localTimeRemaining, setLocalTimeRemaining] = useState<number>(120);
+    const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const { data } = useReadContracts({
         contracts: [
@@ -55,6 +66,18 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                 functionName: 'getTimeRemaining',
                 chainId: gameConfig.chainId,
             },
+            {
+                abi: gameConfig.abi,
+                address: contractAddress,
+                functionName: '_totalPlayers',
+                chainId: gameConfig.chainId,
+            },
+            {
+                abi: gameConfig.abi,
+                address: contractAddress,
+                functionName: '_totalFolds',
+                chainId: gameConfig.chainId,
+            },
         ],
         query: {
             refetchInterval: 1000,
@@ -66,12 +89,43 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     const myBet = (data?.[2]?.result as bigint | undefined) ?? 0n;
     const nextPlayerData = data?.[3]?.result as Player | undefined;
     const nextPlayerAddress = nextPlayerData?.addr ?? '';
-    const timeRemaining = Number(data?.[4]?.result ?? 120);
+    const contractTimeRemaining = Number(data?.[4]?.result ?? 120);
+    const totalPlayers = Number((data?.[5]?.result as bigint | undefined) ?? 0n);
+    const totalFolds = Number((data?.[6]?.result as bigint | undefined) ?? 0n);
+    const playersRemaining = totalPlayers - totalFolds;
 
     const isMyTurn = nextPlayerAddress.toLowerCase() === address?.toLowerCase();
     const roundName = getCurrentRound(currentRound);
     const callAmount = highestBet > myBet ? highestBet - myBet : 0n;
-    const isTimeExpired = timeRemaining === 0;
+    const isTimeExpired = localTimeRemaining === 0;
+
+    // Sync local timer with contract data
+    useEffect(() => {
+        setLocalTimeRemaining(contractTimeRemaining);
+    }, [contractTimeRemaining]);
+
+    // Client-side countdown for smooth timer display
+    useEffect(() => {
+        // Clear any existing interval
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+
+        // Start countdown
+        timerIntervalRef.current = setInterval(() => {
+            setLocalTimeRemaining((prev) => {
+                if (prev <= 0) return 0;
+                return prev - 1;
+            });
+        }, 1000);
+
+        // Cleanup on unmount
+        return () => {
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+    }, []);
 
     const formatTime = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -80,8 +134,8 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     };
 
     const getTimerColor = () => {
-        if (timeRemaining <= 10) return 'text-red-500';
-        if (timeRemaining <= 30) return 'text-orange-500';
+        if (localTimeRemaining <= 10) return 'text-red-500';
+        if (localTimeRemaining <= 30) return 'text-orange-500';
         return 'text-green-500';
     };
 
@@ -148,6 +202,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     };
 
     const onFold = async () => {
+        setShowFoldDialog(false); // Close dialog
         const id = toast.loading('Folding...');
         try {
             const hash = await writeContractAsync({
@@ -207,9 +262,9 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
                 {/* Action Timer */}
                 <div className='flex flex-col items-center gap-2'>
-                    <div className={`flex items-center gap-2 ${getTimerColor()} font-mono text-3xl font-bold transition-all duration-300 ${timeRemaining <= 10 ? 'animate-pulse scale-110' : ''}`}>
-                        <Clock className={`h-7 w-7 ${timeRemaining <= 10 ? 'animate-spin' : ''}`} />
-                        <span>{formatTime(timeRemaining)}</span>
+                    <div className={`flex items-center gap-2 ${getTimerColor()} font-mono text-3xl font-bold transition-all duration-300 ${localTimeRemaining <= 10 ? 'animate-pulse scale-110' : ''}`}>
+                        <Clock className={`h-7 w-7 ${localTimeRemaining <= 10 ? 'animate-spin' : ''}`} />
+                        <span>{formatTime(localTimeRemaining)}</span>
                     </div>
                     <div className='text-center text-sm text-neutral-400'>
                         {isMyTurn ? (
@@ -294,7 +349,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                             <Button
                                 className='bg-red-600 font-poker text-lg hover:bg-red-700'
                                 variant='destructive'
-                                onClick={onFold}
+                                onClick={() => setShowFoldDialog(true)}
                             >
                                 Fold
                             </Button>
@@ -311,6 +366,47 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                     </div>
                 )}
             </div>
+
+            {/* Fold Confirmation Dialog */}
+            <Dialog open={showFoldDialog} onOpenChange={setShowFoldDialog}>
+                <DialogContent className='sm:max-w-[425px]'>
+                    <DialogHeader>
+                        <DialogTitle className='flex items-center gap-2 text-xl'>
+                            <AlertTriangle className='h-6 w-6 text-red-500' />
+                            Confirm Fold
+                        </DialogTitle>
+                        <DialogDescription className='space-y-3 pt-4'>
+                            <p className='text-base'>
+                                Are you sure you want to fold? You will forfeit your stake and exit this round.
+                            </p>
+                            <div className='rounded-lg bg-red-500/10 p-3 text-sm text-red-500'>
+                                <span className='font-semibold'>Warning:</span> Once you fold, you cannot rejoin this game.
+                                Your bet will be lost.
+                            </div>
+                            {Boolean(playersRemaining === 2) && (
+                                <div className='rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600'>
+                                    Only 2 players remaining. If you fold, the other player will win automatically.
+                                </div>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className='gap-2 sm:gap-0'>
+                        <Button
+                            variant='outline'
+                            onClick={() => setShowFoldDialog(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            className='bg-red-600 hover:bg-red-700'
+                            variant='destructive'
+                            onClick={onFold}
+                        >
+                            Yes, Fold
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Overlay>
     );
 };
