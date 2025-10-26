@@ -9,24 +9,25 @@ import { toast } from 'sonner';
 import { type Hex, hexToBigInt } from 'viem';
 import { useAccount, useWriteContract } from 'wagmi';
 
-interface AutoRevealCommunityProps {
+interface AutoRevealPlayerProps {
   contractAddress: `0x${string}`;
-  pendingCommunityCards: number[];
+  pendingPlayerCards: number[];
   deck: Hex[][];
   refresh: () => Promise<void>;
 }
 
 /**
- * Automatically submits reveal tokens for community cards.
- * Community cards should be PUBLIC in poker - visible to all players immediately.
- * This component auto-submits reveal tokens so community cards become visible as soon as possible.
+ * Automatically submits reveal tokens for player hole cards.
+ * In mental poker, to decrypt your own hole cards, you need reveal tokens from ALL OTHER players.
+ * This component auto-submits YOUR reveal tokens so OTHER players can see THEIR hole cards.
+ * Vice versa, once other players auto-submit, YOU can see YOUR hole cards.
  */
-export const AutoRevealCommunity = ({
+export const AutoRevealPlayer = ({
   contractAddress,
-  pendingCommunityCards,
+  pendingPlayerCards,
   deck,
   refresh,
-}: AutoRevealCommunityProps) => {
+}: AutoRevealPlayerProps) => {
   const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const { getKey } = useShuffle();
@@ -34,53 +35,53 @@ export const AutoRevealCommunity = ({
   const lastSubmittedRef = useRef<string>('');
 
   // Create stable cardKey for dependency tracking
-  const cardKey = pendingCommunityCards.length > 0
-    ? [...pendingCommunityCards].sort((a, b) => a - b).join(',')
+  const cardKey = pendingPlayerCards.length > 0
+    ? [...pendingPlayerCards].sort((a, b) => a - b).join(',')
     : '';
 
   useEffect(() => {
     const submitRevealTokens = async () => {
       // Guard: Check if already submitting
       if (isSubmittingRef.current) {
-        console.log('[AutoReveal] Already submitting, skipping...');
+        console.log('[AutoRevealPlayer] Already submitting, skipping...');
         return;
       }
 
-      // Guard: Check if we have pending community cards
-      if (pendingCommunityCards.length === 0) return;
+      // Guard: Check if we have pending player cards
+      if (pendingPlayerCards.length === 0) return;
 
       // Guard: Check if wallet connected
       if (!address) return;
 
       // Guard: Check if already submitted this set of cards
       if (lastSubmittedRef.current === cardKey) {
-        console.log('[AutoReveal] Already submitted these cards, skipping...');
+        console.log('[AutoRevealPlayer] Already submitted these cards, skipping...');
         return;
       }
 
       // Guard: Check if we have deck data
       if (deck.length === 0) {
-        console.log('[AutoReveal] Deck not ready, skipping...');
+        console.log('[AutoRevealPlayer] Deck not ready, skipping...');
         return;
       }
 
       // Show info toast explaining what's about to happen
       const infoToastId = toast.info(
-        'Revealing community cards...',
+        'Submitting reveal tokens to decrypt cards...',
         {
-          description: 'Please approve the wallet transaction to reveal the flop/turn/river.',
+          description: 'Please approve the wallet transaction. This helps all players see their hole cards.',
           duration: 10000,
         }
       );
 
       try {
         isSubmittingRef.current = true;
-        console.log('[AutoReveal] Submitting reveal tokens for community cards:', pendingCommunityCards);
+        console.log('[AutoRevealPlayer] Submitting reveal tokens for player cards:', pendingPlayerCards);
 
         const cards: [Hex, Hex, Hex, Hex][] = [];
-        for (const i of pendingCommunityCards) {
+        for (const i of pendingPlayerCards) {
           if (!deck[i]) {
-            console.error('[AutoReveal] Card not found in deck:', i);
+            console.error('[AutoRevealPlayer] Card not found in deck:', i);
             toast.dismiss(infoToastId);
             return;
           }
@@ -106,7 +107,7 @@ export const AutoRevealCommunity = ({
           ...gameConfig,
           address: contractAddress,
           functionName: 'addMultipleRevealTokens',
-          args: [pendingCommunityCards, revealTokens],
+          args: [pendingPlayerCards, revealTokens],
         });
 
         await waitForTransactionReceipt(wagmiConfig, { hash });
@@ -114,18 +115,18 @@ export const AutoRevealCommunity = ({
         // Mark as submitted BEFORE refresh to prevent race condition
         lastSubmittedRef.current = cardKey;
 
-        console.log('[AutoReveal] Community cards revealed successfully');
+        console.log('[AutoRevealPlayer] Player cards reveal tokens submitted successfully');
 
-        toast.success('Community cards revealed!', {
+        toast.success('Reveal tokens submitted!', {
           id: loadingToastId,
-          description: 'Cards will be visible once all players submit their tokens.',
+          description: 'Your cards will decrypt once all players submit their tokens.',
         });
 
         await refresh();
       } catch (error) {
-        console.error('[AutoReveal] Failed to submit reveal tokens:', error);
+        console.error('[AutoRevealPlayer] Failed to submit reveal tokens:', error);
         toast.dismiss(infoToastId);
-        toast.error('Failed to reveal community cards', {
+        toast.error('Failed to submit reveal tokens', {
           description: error instanceof Error ? error.message : 'Please try refreshing the page',
         });
         // Reset to allow retry on next effect run

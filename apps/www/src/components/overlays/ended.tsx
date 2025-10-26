@@ -31,7 +31,7 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
             {
                 ...gameConfig,
                 address: contractAddress,
-                functionName: '_highestBet',
+                functionName: 'getPotAmount',
             },
             {
                 ...gameConfig,
@@ -41,16 +41,24 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
         ],
     });
 
-    const winnerData = data?.[0]?.result as readonly [string, bigint] | undefined;
+    // Winner returns Player struct: {addr: address, publicKey: Point}
+    // We don't need the publicKey, just the address
+    const winnerData = data?.[0]?.result as readonly [string, unknown] | undefined;
     const winnerAddress = winnerData?.[0] ?? '';
-    const winnerWeightRaw = winnerData?.[1] ?? 0n;
-    const winnerWeight = typeof winnerWeightRaw === 'bigint' ? winnerWeightRaw : BigInt(winnerWeightRaw);
-    const totalPot = (data?.[1]?.result as bigint | undefined) ?? 0n;
-    const totalPlayersResult = (data?.[2]?.result as bigint | undefined) ?? 0n;
-    const totalPlayers = typeof totalPlayersResult === 'bigint' ? totalPlayersResult : BigInt(totalPlayersResult);
+
+    // Get total pot amount (already includes all bets)
+    const totalPotValue = (data?.[1]?.result as bigint | undefined) ?? 0n;
+    const totalPlayersRaw = data?.[2]?.result;
+
+    // Convert totalPlayers to number, handling both bigint and number types
+    let totalPlayers = 0;
+    if (typeof totalPlayersRaw === 'bigint') {
+        totalPlayers = Number(totalPlayersRaw);
+    } else if (typeof totalPlayersRaw === 'number') {
+        totalPlayers = totalPlayersRaw;
+    }
 
     const isWinner = winnerAddress.toLowerCase() === address?.toLowerCase();
-    const totalPotValue = totalPot * totalPlayers;
 
     return (
         <Overlay>
@@ -69,10 +77,6 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
                         {Boolean(isWinner) && <span className='ml-2 text-green-400'>(You!)</span>}
                     </div>
 
-                    <div className='text-center text-xl text-neutral-300'>
-                        Winning Hand Strength: <span className='font-bold text-purple-400'>{String(winnerWeight)}</span>
-                    </div>
-
                     <div className='border-t border-neutral-600 pt-4'>
                         <div className='text-center text-3xl font-bold text-green-400'>
                             Prize: {formatEther(totalPotValue)} ETH
@@ -82,7 +86,7 @@ export const EndedOverlay = ({ contractAddress }: OverlayProps) => {
 
                 <div className='flex flex-col gap-2 text-center text-lg text-neutral-400'>
                     <div>Total Players: {String(totalPlayers)}</div>
-                    <div>Pot per Player: {formatEther(totalPot)} ETH</div>
+                    <div>Total Pot: {formatEther(totalPotValue)} ETH</div>
                 </div>
 
                 {Boolean(isWinner) && (

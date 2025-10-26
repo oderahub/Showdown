@@ -25,13 +25,13 @@ export const Overlay = ({
   const [isMinimized, setIsMinimized] = useState(false);
 
   if (variant === 'compact') {
-    // Compact mode minimized - Show compact indicator at bottom
+    // Compact mode minimized - Show compact indicator at top
     if (minimizable && isMinimized) {
       return (
         <div className='pointer-events-none fixed inset-0 z-40'>
           <button
             type='button'
-            className='pointer-events-auto fixed bottom-8 left-[50%] z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
+            className='pointer-events-auto fixed left-[50%] top-8 z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
             style={{
               backgroundImage: `url(${GoldBG.src})`,
               objectFit: 'cover',
@@ -82,13 +82,13 @@ export const Overlay = ({
     );
   }
 
-  // Minimized state - Show compact indicator at bottom
+  // Minimized state - Show compact indicator at top
   if (minimizable && isMinimized) {
     return (
       <div className='pointer-events-none fixed inset-0 z-40'>
         <button
           type='button'
-          className='pointer-events-auto fixed bottom-8 left-[50%] z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
+          className='pointer-events-auto fixed left-[50%] top-8 z-40 flex translate-x-[-50%] cursor-pointer items-center gap-3 rounded-full border border-amber-500/50 bg-background px-6 py-3 shadow-2xl transition-all hover:scale-105'
           style={{
             backgroundImage: `url(${GoldBG.src})`,
             objectFit: 'cover',
