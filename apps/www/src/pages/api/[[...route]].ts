@@ -13,7 +13,7 @@ export const config: PageConfig = {
 
 const DECK_SIZE = 52;
 
-const app = new Hono();
+const app = new Hono().basePath('/api');
 
 app.get('/generate-key', (c) => {
   const key = SE.generate_key();
