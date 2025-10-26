@@ -15,12 +15,12 @@ const DECK_SIZE = 52;
 
 const app = new Hono();
 
-app.get('/generate-key', (c) => {
+app.get('/api/generate-key', (c) => {
   const key = SE.generate_key();
   return c.json(key);
 });
 
-app.post('/get-masked-cards', async (c) => {
+app.post('/api/get-masked-cards', async (c) => {
   const body = (await c.req.json()) as unknown;
   const gameKey = (body as { gameKey: [string, string] }).gameKey;
 
@@ -36,7 +36,7 @@ app.post('/get-masked-cards', async (c) => {
   });
 });
 
-app.post('/first-shuffle', async (c) => {
+app.post('/api/first-shuffle', async (c) => {
   const body = (await c.req.json()) as unknown;
   const b = body as {
     gameKey: [string, string];
@@ -57,7 +57,7 @@ app.post('/first-shuffle', async (c) => {
   });
 });
 
-app.post('/shuffle', async (c) => {
+app.post('/api/shuffle', async (c) => {
   const body = (await c.req.json()) as unknown;
   const b = body as {
     oldDeck: [Hex, Hex, Hex, Hex][];
@@ -71,7 +71,7 @@ app.post('/shuffle', async (c) => {
   return c.json({ shuffled: secondShuffled });
 });
 
-app.post('/get-reveal-token', async (c) => {
+app.post('/api/get-reveal-token', async (c) => {
   const body = (await c.req.json()) as unknown;
   const b = body as {
     card: [Hex, Hex, Hex, Hex];
@@ -83,7 +83,7 @@ app.post('/get-reveal-token', async (c) => {
   return c.json(revealKey);
 });
 
-app.post('/unmask-card', async (c) => {
+app.post('/api/unmask-card', async (c) => {
   try {
     const body = (await c.req.json()) as unknown;
     const b = body as {
@@ -100,7 +100,7 @@ app.post('/unmask-card', async (c) => {
   }
 });
 
-app.post('/get-reveal-tokens', async (c) => {
+app.post('/api/get-reveal-tokens', async (c) => {
   const body = (await c.req.json()) as unknown;
   const b = body as {
     cards: [Hex, Hex, Hex, Hex][];
@@ -115,7 +115,7 @@ app.post('/get-reveal-tokens', async (c) => {
   return c.json({ revealKeys });
 });
 
-app.post('/unmask-cards', async (c) => {
+app.post('/api/unmask-cards', async (c) => {
   const body = (await c.req.json()) as unknown;
   const b = body as {
     cards: [Hex, Hex, Hex, Hex][];
