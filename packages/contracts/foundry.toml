@@ -12,8 +12,12 @@ fs_permissions = [
 ]
 ffi = true
 
-# Extreme size optimization for Lisk Sepolia deployment
-# Use with: forge build --profile size-optimized
+# Size-optimization profile.
+# Note: compiler settings alone do NOT bring ZgShuffleVerifier under the
+# 24,576-byte EIP-170 limit (26,974 bytes at optimizer_runs=1 vs 27,002 at 200).
+# EIP-170 is enforced identically by every major EVM chain, so this needs a
+# structural fix rather than a compiler flag. See README "Security Model".
+# Use with: FOUNDRY_PROFILE=size-optimized forge build
 [profile.size-optimized]
 src = "src"
 out = "out"
@@ -32,6 +36,10 @@ ffi = true
 
 [rpc_endpoints]
 lisk_sepolia = "https://rpc.sepolia-api.lisk.com"
+fuji = "https://api.avax-test.network/ext/bc/C/rpc"
+avalanche = "https://api.avax.network/ext/bc/C/rpc"
 
 [etherscan]
 lisk_sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://sepolia-blockscout.lisk.com/api" }
+fuji = { key = "${SNOWTRACE_API_KEY}", url = "https://api-testnet.snowtrace.io/api", chain = 43113 }
+avalanche = { key = "${SNOWTRACE_API_KEY}", url = "https://api.snowtrace.io/api", chain = 43114 }
