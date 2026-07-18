@@ -19,8 +19,9 @@ const TermsPage: React.FC = () => {
             <div>
               <h3 className="font-semibold text-yellow-500 mb-2">Important Notice</h3>
               <p className="text-sm text-muted-foreground">
-                This platform facilitates real cryptocurrency gambling. By using this service,
-                you acknowledge and accept all associated financial risks.
+                Showdown is an unaudited testnet preview. Play uses free test tokens that have
+                no monetary value, and no real-money wagering is offered. By using this service
+                you accept that it is experimental software provided without warranty.
               </p>
             </div>
           </div>
@@ -34,11 +35,16 @@ const TermsPage: React.FC = () => {
           <div className="pl-7 space-y-2 text-muted-foreground">
             <p>To use this platform, you must:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Be at least 18 years old (or 21+ in applicable jurisdictions)</li>
-              <li>Reside in a jurisdiction where online cryptocurrency gambling is legal</li>
               <li>Have the legal capacity to enter into binding agreements</li>
-              <li>Not be prohibited from gambling under any applicable law</li>
+              <li>Use it only where accessing experimental blockchain software is lawful</li>
+              <li>Understand that play involves valueless testnet tokens, not real funds</li>
             </ul>
+            <p>
+              Showdown is a skill-based poker game. This deployment does not offer real-money
+              play and does not accept deposits. Should a future release support real stakes,
+              age and jurisdiction requirements will apply and these terms will be updated
+              before that happens.
+            </p>
           </div>
         </section>
 
@@ -46,30 +52,36 @@ const TermsPage: React.FC = () => {
           <h2 className="text-2xl font-semibold">2. Platform Description</h2>
           <div className="pl-7 space-y-2 text-muted-foreground">
             <p>
-              This is a decentralized Texas Hold&apos;em poker game built on the Lisk Sepolia blockchain
-              using zero-knowledge proofs for card shuffling and revealing.
+              This is a decentralized Texas Hold&apos;em poker game currently deployed on the
+              Lisk Sepolia test network, using zero-knowledge proofs for card shuffling and
+              revealing.
             </p>
             <p><strong>Key Features:</strong></p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>On-chain game logic with provably fair card distribution</li>
+              <li>On-chain game logic and pot distribution</li>
               <li>Mental Poker protocol using ZK-SNARKs</li>
               <li>2-minute action timeout to prevent griefing</li>
               <li>Automatic force-fold for inactive players</li>
             </ul>
+            <p>
+              <strong>Fairness limitation:</strong> card reveals are verified on-chain, but
+              shuffle proofs are currently verified client-side rather than by the contract.
+              Card distribution is therefore not yet trustlessly enforced.
+            </p>
           </div>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">3. Financial Risks</h2>
+          <h2 className="text-2xl font-semibold">3. Stakes & Risks</h2>
           <div className="pl-7 space-y-2 text-muted-foreground">
             <p><strong>You acknowledge and accept that:</strong></p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>All bets are made in real cryptocurrency (ETH on Lisk Sepolia)</li>
-              <li>You may lose your entire stake in any game</li>
-              <li>Cryptocurrency values are volatile and may fluctuate</li>
+              <li>Bets use Lisk Sepolia testnet tokens, which have no monetary value and are obtained free from a faucet</li>
+              <li>You may lose your entire testnet stake in any game</li>
               <li>Blockchain transactions are irreversible</li>
-              <li>Gas fees apply to all transactions</li>
-              <li>We are not responsible for any financial losses</li>
+              <li>Testnet gas fees apply to all transactions</li>
+              <li>Test networks may be reset, and balances lost, without notice</li>
+              <li>We are not responsible for any losses</li>
             </ul>
           </div>
         </section>
@@ -82,7 +94,6 @@ const TermsPage: React.FC = () => {
               <li>Failure to act within 2 minutes results in automatic force-fold</li>
               <li>Any player can trigger force-fold after timeout expires</li>
               <li>Timed-out players forfeit their current stake (set to 0)</li>
-              <li>Repeated timeouts may impact your reputation</li>
             </ul>
           </div>
         </section>
@@ -92,8 +103,8 @@ const TermsPage: React.FC = () => {
           <div className="pl-7 space-y-2 text-muted-foreground">
             <p>This platform uses smart contracts which:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Are deployed on Lisk Sepolia (testnet/mainnet)</li>
-              <li>Have been audited but are provided &quot;as is&quot; without warranty</li>
+              <li>Are deployed on the Lisk Sepolia test network</li>
+              <li><strong>Have not been audited</strong>, and are provided &quot;as is&quot; without warranty</li>
               <li>May contain bugs or vulnerabilities</li>
               <li>Are immutable and cannot be upgraded after deployment</li>
               <li>Execute automatically without human intervention</li>
@@ -107,7 +118,7 @@ const TermsPage: React.FC = () => {
             <ul className="list-disc pl-5 space-y-1">
               <li>All game data is stored on public blockchain (transparent)</li>
               <li>Your wallet address is publicly visible</li>
-              <li>Age verification status is stored locally only (LocalStorage)</li>
+              <li>Testnet notice acknowledgement is stored locally only (LocalStorage)</li>
               <li>We do not collect personal information beyond wallet addresses</li>
               <li>Chat messages (if enabled) are temporary and not stored permanently</li>
             </ul>
@@ -164,10 +175,17 @@ const TermsPage: React.FC = () => {
           <h2 className="text-2xl font-semibold">11. Contact & Disputes</h2>
           <div className="pl-7 space-y-2 text-muted-foreground">
             <p>
-              For questions or disputes, please contact us at: <strong>[Your Contact Email]</strong>
-            </p>
-            <p>
-              Disputes will be resolved through binding arbitration in accordance with [Jurisdiction].
+              Showdown is an open-source project. For questions, bug reports, or disputes,
+              please open an issue at{' '}
+              <a
+                className="text-primary underline hover:text-primary/80"
+                href="https://github.com/oderahub/showdown/issues"
+                rel="noreferrer"
+                target="_blank"
+              >
+                github.com/oderahub/showdown
+              </a>
+              .
             </p>
           </div>
         </section>
