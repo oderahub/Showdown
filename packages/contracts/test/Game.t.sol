@@ -24,7 +24,10 @@ contract GameTest is Test {
     function setUp() public virtual {
         alice = vm.createWallet("alice");
         bob = vm.createWallet("bob");
-        string memory RPC = vm.envString("LISK_RPC_URL");
+        // Forks Lisk Sepolia to reach the deployed RevealVerifier below.
+        // Defaults to the public RPC so `forge test` works on a fresh clone;
+        // override with LISK_RPC_URL for a private endpoint.
+        string memory RPC = vm.envOr("LISK_RPC_URL", string("https://rpc.sepolia-api.lisk.com"));
         liskSepoliaFork = vm.createFork(RPC);
 
         vm.selectFork(liskSepoliaFork);
