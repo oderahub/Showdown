@@ -153,6 +153,33 @@ implementation.
 [PASS] test_reportVerificationGas()          2,383,293 gas
 ```
 
+[`test/ShuffleVerifyLive.t.sol`](./packages/contracts/test/ShuffleVerifyLive.t.sol) closes the loop
+from the other side, running the verifier against a proof captured from a live run of this app's own
+`/api/get-masked-cards` → `/api/first-shuffle` pipeline:
+
+```
+[PASS] test_verifiesProofGeneratedByThisApp()   2,382,928 gas
+```
+
+The shuffle Showdown produces today is one the contract can verify on-chain. The remaining work is
+wiring `Game.sol` to call `verifyShuffle`.
+
+### Proof generation latency
+
+Proving is the slowest part of the system by a wide margin, measured against the dev server with
+routes warm:
+
+| Operation | Warm |
+|---|---|
+| `/api/generate-key` | 0.01s |
+| `/api/get-masked-cards` | 14.3s |
+| `/api/first-shuffle` | **46.7s** |
+
+Every player shuffles, so a heads-up hand spends roughly 110 seconds generating proofs before the
+first bet. This dominates the ~2.38M gas of on-chain verification in practical terms and is the main
+obstacle to the game feeling playable. Reducing it — proving in parallel, moving generation to the
+client, or a faster proving backend — is ahead of any gas concern.
+
 **On-chain shuffle verification costs ~2.38M gas per shuffle.** Every player shuffles, so an
 _n_-player hand pays that _n_ times.
 
