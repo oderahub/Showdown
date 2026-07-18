@@ -219,9 +219,29 @@ abstract contract PlonkVerifier {
         return verifyProof(vk1, vk2, true);
     }
 
-    function verifyGenericProof(address vk1, address vk2) public view returns (bool) {
-        return verifyProof(vk1, vk2, false);
-    }
+    // LOCAL MODIFICATION vs upstream zypher-game/uzkge.
+    //
+    // Upstream also exposes:
+    //
+    //     function verifyGenericProof(address vk1, address vk2) public view returns (bool) {
+    //         return verifyProof(vk1, vk2, false);
+    //     }
+    //
+    // `verifyProof` is private and reached only from these two entry points, differing
+    // solely by the constant `shuffle_specified` flag. The optimizer specializes the
+    // ~6KB verifier body once per entry point, so keeping both makes the deployed
+    // contract carry two near-identical copies of it.
+    //
+    // Showdown only ever verifies shuffle proofs, so the generic path is removed.
+    // Effect on ZgShuffleVerifier runtime size:
+    //
+    //     with verifyGenericProof:    27,002 bytes  (over EIP-170 by 2,426)
+    //     without:                    20,755 bytes  (under EIP-170 by 3,821)
+    //
+    // This is what makes on-chain shuffle verification deployable at all -- EIP-170's
+    // 24,576-byte cap is enforced by every major EVM chain. See test/ShuffleVerify52.t.sol,
+    // which checks both the size and that the verifier still accepts upstream's own
+    // 52-card proof vector.
 
     function verifyProof(address vk1, address vk2, bool shuffle_specified) private view returns (bool) {
         assembly {
