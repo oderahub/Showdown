@@ -43,6 +43,8 @@ prototype is deployed and playable on **Lisk Sepolia** testnet.
 
 - **Game Factory**: [`0xBf3c326C76A7dB1Cf547A075252034e12A73050F`](https://testnet.snowtrace.io/address/0xBf3c326C76A7dB1Cf547A075252034e12A73050F)
 - **Reveal Verifier**: [`0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78`](https://testnet.snowtrace.io/address/0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78)
+- **First game created**: [`0x25b19D9f0cb225917Ead51C9e23b3d948ecDeEcd`](https://testnet.snowtrace.io/address/0x25b19D9f0cb225917Ead51C9e23b3d948ecDeEcd)
+  — created through the app on Fuji, 14,037 bytes of `Game` bytecode, one player seated
 
 Point the frontend at Fuji with `NEXT_PUBLIC_CHAIN_ID=43113`. To redeploy:
 
