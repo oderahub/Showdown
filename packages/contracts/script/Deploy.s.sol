@@ -5,7 +5,6 @@ import {Script, console} from "forge-std/Script.sol";
 
 import {GameFactory} from "src/GameFactory.sol";
 import {RevealVerifier} from "src/zypher-verifiers/shuffle/RevealVerifier.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract DeployScript is Script {
     GameFactory public factory;
@@ -55,14 +54,12 @@ contract DeployScript is Script {
         factory = new GameFactory();
         console.log("GameFactory deployed at:", address(factory));
         console.log("");
-        
-        // Write GameFactory address to config.json
-        string memory addressPath = "../../apps/www/public/config.json";
-        vm.writeJson(
-            Strings.toHexString(uint160(address(factory))), 
-            addressPath, 
-            ".GAME_FACTORY_ADDRESS"
-        );
+
+        // Deliberately does not write addresses to a file. The frontend's single
+        // source of truth is the CONTRACTS map in apps/www/src/lib/viem/chains.ts;
+        // a second copy previously drifted out of date and pointed the README at a
+        // different factory than the app actually used. Copy the addresses printed
+        // below into that map by hand.
 
         vm.stopBroadcast();
         

@@ -30,7 +30,7 @@ prototype is deployed and playable on **Lisk Sepolia** testnet.
 |---|---|
 | **Live demo** | [texas-seven.vercel.app](https://texas-seven.vercel.app) |
 | **Demo video** | [YouTube](https://www.youtube.com/watch?v=1lw5bxYwsPk) |
-| **Current deployment** | Lisk Sepolia (testnet) |
+| **Deployments** | Lisk Sepolia (original prototype) · Avalanche Fuji (migration in progress) |
 | **Next target** | Avalanche C-Chain — see [Roadmap](#-roadmap-avalanche-c-chain) |
 | **Stage** | Prototype. Testnet funds only, not audited, not for real-money play. |
 
@@ -39,20 +39,20 @@ prototype is deployed and playable on **Lisk Sepolia** testnet.
 - **Game Factory**: [`0xe86553AE8f33924b5B7174F64ceaCbeff473548D`](https://sepolia-blockscout.lisk.com/address/0xe86553AE8f33924b5B7174F64ceaCbeff473548D)
 - **Reveal Verifier**: [`0x49cFFa95ffB77d398222393E3f0C4bFb5D996321`](https://sepolia-blockscout.lisk.com/address/0x49cFFa95ffB77d398222393E3f0C4bFb5D996321)
 
-### Deploying to Avalanche Fuji
+### Deployed Contracts — Avalanche Fuji
 
-Chain config is in place for Fuji (43113) and C-Chain (43114). Once you have testnet AVAX from the
-[Core faucet](https://core.app/tools/testnet-faucet) or [Builder Hub](https://build.avax.network/console):
+- **Game Factory**: [`0xBf3c326C76A7dB1Cf547A075252034e12A73050F`](https://testnet.snowtrace.io/address/0xBf3c326C76A7dB1Cf547A075252034e12A73050F)
+- **Reveal Verifier**: [`0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78`](https://testnet.snowtrace.io/address/0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78)
+
+Point the frontend at Fuji with `NEXT_PUBLIC_CHAIN_ID=43113`. To redeploy:
 
 ```bash
 cd packages/contracts
-PRIVATE_KEY=0x... forge script script/Deploy.s.sol --rpc-url fuji --broadcast
+forge script script/Deploy.s.sol --rpc-url fuji --broadcast   # reads PRIVATE_KEY from .env
 ```
 
-The script deploys a fresh `RevealVerifier` on any chain other than Lisk Sepolia, then `GameFactory`.
-Record the addresses it prints in the `CONTRACTS` map in
-[`apps/www/src/lib/viem/chains.ts`](./apps/www/src/lib/viem/chains.ts), then point the frontend at
-Fuji with `NEXT_PUBLIC_CHAIN_ID=43113`.
+The script deploys a fresh `RevealVerifier` on any chain other than Lisk Sepolia, then `GameFactory`,
+linking the `QuickSort` and `TexasPoker` libraries automatically.
 
 ---
 
