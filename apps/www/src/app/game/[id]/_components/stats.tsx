@@ -6,6 +6,8 @@ import MotionNumber from 'motion-number';
 import { formatEther, type Address } from 'viem';
 import { PokerBox } from '~/components';
 
+import { activeChain } from '~/lib/viem/chains';
+
 interface GameStatisticsProps {
   highestBid: number;
   winner: Address;
@@ -30,7 +32,9 @@ export const GameStatistics = ({
               className='text-xl font-bold tabular-nums'
               value={highestBidInEth}
             />
-            <span className='text-sm text-yellow-400'>ETH</span>
+            <span className='text-sm text-yellow-400'>
+              {activeChain.nativeCurrency.symbol}
+            </span>
           </div>
         </div>
         <div className='flex flex-row justify-between gap-4'>

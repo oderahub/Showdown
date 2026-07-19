@@ -7,8 +7,10 @@ import { truncate } from '~/lib/utils';
 import { gameConfig } from '~/lib/viem';
 
 import MotionNumber from 'motion-number';
-import { isAddress, toHex, zeroAddress, type Hex } from 'viem';
+import { formatEther, isAddress, toHex, zeroAddress, type Hex } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
+
+import { activeChain } from '~/lib/viem/chains';
 
 import { GameOverlay } from '~/components/overlays';
 import { Button } from '~/components/ui/button';
@@ -177,11 +179,19 @@ const GamePage = ({ params }: { params: { id: `0x${string}` } }) => {
           <div className='text-center font-poker text-3xl font-medium text-neutral-200'>
             {data.currentRound}
           </div>
-          <MotionNumber
-            className='rounded-full border-2 border-[#70AF8A] bg-[#204D39] px-8 py-4 text-5xl'
-            format={{ style: 'currency', currency: 'USD' }}
-            value={data.potAmount}
-          />
+          {/* potAmount is wei. It used to be rendered raw with a USD currency
+              format, so a 2,000,000 wei pot displayed as "US$2,000,000.00" and
+              overflowed its pill. Show it in the chain's native token instead. */}
+          <div className='flex items-baseline justify-center gap-2 rounded-full border-2 border-[#70AF8A] bg-[#204D39] px-8 py-4'>
+            <MotionNumber
+              className='text-5xl tabular-nums'
+              format={{ maximumFractionDigits: 4 }}
+              value={Number(formatEther(BigInt(data.potAmount)))}
+            />
+            <span className='text-2xl text-[#70AF8A]'>
+              {activeChain.nativeCurrency.symbol}
+            </span>
+          </div>
         </div>
         <GameStatistics
           highestBid={data.highestBet}
