@@ -41,10 +41,13 @@ prototype is deployed and playable on **Lisk Sepolia** testnet.
 
 ### Deployed Contracts — Avalanche Fuji
 
-- **Game Factory**: [`0xBf3c326C76A7dB1Cf547A075252034e12A73050F`](https://testnet.snowtrace.io/address/0xBf3c326C76A7dB1Cf547A075252034e12A73050F)
-- **Reveal Verifier**: [`0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78`](https://testnet.snowtrace.io/address/0xAE5d214ecE811D3B65E42f7018e8fD77f16ebb78)
-- **First game created**: [`0x25b19D9f0cb225917Ead51C9e23b3d948ecDeEcd`](https://testnet.snowtrace.io/address/0x25b19D9f0cb225917Ead51C9e23b3d948ecDeEcd)
-  — created through the app on Fuji, 14,037 bytes of `Game` bytecode, one player seated
+- **Game Factory**: [`0xb84672727349ec69F5BCf4FB0b35532d74eDbbE0`](https://testnet.snowtrace.io/address/0xb84672727349ec69F5BCf4FB0b35532d74eDbbE0)
+- **Reveal Verifier**: [`0x9BBf0251BB9CD128c7dcE0474cF016D618D5749C`](https://testnet.snowtrace.io/address/0x9BBf0251BB9CD128c7dcE0474cF016D618D5749C)
+
+> An earlier Fuji deployment (factory `0xBf3c326C…`, verifier `0xAE5d214e…`) is superseded.
+> It deployed the raw `RevealVerifier` rather than the `ZgRevealVerifier` wrapper that
+> `Game.sol` calls, so card reveals reverted. Games created against it cannot decrypt
+> their cards.
 
 Point the frontend at Fuji with `NEXT_PUBLIC_CHAIN_ID=43113`. To redeploy:
 

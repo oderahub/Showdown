@@ -4,7 +4,11 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 
 import {GameFactory} from "src/GameFactory.sol";
-import {RevealVerifier} from "src/zypher-verifiers/shuffle/RevealVerifier.sol";
+// Game.sol casts the verifier address to ZgRevealVerifier (secret-engine/Verifiers.sol)
+// and calls unmaskCard/aggregateKeys on it. Deploy that wrapper, NOT the raw
+// RevealVerifier it composes -- the raw one lacks those selectors, so reveals revert
+// with empty data and community cards never decrypt.
+import {ZgRevealVerifier} from "src/zypher-verifiers/ZgRevealVerifier.sol";
 
 contract DeployScript is Script {
     GameFactory public factory;
@@ -41,9 +45,9 @@ contract DeployScript is Script {
             revealVerifier = LISK_SEPOLIA_REVEAL_VERIFIER;
             console.log("Using existing Lisk Sepolia RevealVerifier:", revealVerifier);
         } else {
-            console.log("Deploying RevealVerifier...");
-            revealVerifier = address(new RevealVerifier());
-            console.log("RevealVerifier deployed at:", revealVerifier);
+            console.log("Deploying ZgRevealVerifier...");
+            revealVerifier = address(new ZgRevealVerifier());
+            console.log("ZgRevealVerifier deployed at:", revealVerifier);
         }
         console.log("");
 
