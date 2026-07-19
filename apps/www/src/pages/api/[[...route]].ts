@@ -96,7 +96,14 @@ app.post('/api/unmask-card', async (c) => {
 
     return c.json({ result });
   } catch (error) {
-    console.log(error);
+    // Previously this logged and fell through, returning no response at all.
+    // Hono then answered 404, so every unmask failure looked to the client like
+    // a missing route rather than the underlying crypto error. Surface it.
+    console.error('[unmask-card] failed:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      500
+    );
   }
 });
 
