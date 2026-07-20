@@ -139,8 +139,14 @@ const PlayerCard = ({ cardIndex, contractAddress, deck }: PlayerCard) => {
         // Type assertion for the response
         const revealTokens = res as RevealToken[];
         
+        // Decryption needs my secret key plus the OTHER players' reveal
+        // tokens; my own token must be excluded. The contract returns
+        // checksummed addresses, so compare case-insensitively -- a casing
+        // mismatch here leaves my own token in the set, over-subtracts, and
+        // Zypher throws "Point not map to a card". (Same lowercasing the
+        // betting and end-game overlays already do.)
         const rTokens = revealTokens
-          .filter((t) => t.player !== address)
+          .filter((t) => t.player.toLowerCase() !== address.toLowerCase())
           .map(
             (r) =>
               [
