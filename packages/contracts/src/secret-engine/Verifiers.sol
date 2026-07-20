@@ -13,7 +13,9 @@ struct Point {
     uint256 y;
 }
 
-// ZgShuffleVerifier not used - shuffle verification done off-chain for Lisk compatibility
+// ZgShuffleVerifier is currently unused: shuffle proofs are verified client-side
+// because the verifier exceeds the 24,576-byte EIP-170 limit (universal across EVM
+// chains, not specific to any one of them). See README "Security Model".
 // interface ZgShuffleVerifier {
 //     function verifyShuffle(bytes calldata proof, uint256[] calldata inputs, uint256[] calldata publicKeyCommitment)
 //         external

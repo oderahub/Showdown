@@ -8,6 +8,7 @@ import { getCurrentRound } from '~/lib/helpers';
 import { useShuffle } from '~/lib/hooks';
 import { errorHandler } from '~/lib/utils';
 import { gameConfig, gameFactoryConfig, wagmiConfig } from '~/lib/viem';
+import { activeChain } from '~/lib/viem/chains';
 
 import { useQuery } from '@tanstack/react-query';
 import { readContract, readContracts, waitForTransactionReceipt, simulateContract } from '@wagmi/core';
@@ -31,7 +32,8 @@ export const GameCard = ({ id }: GameCardProps) => {
   const [isJoining, setIsJoining] = useState(false);
 
   // Strict wallet connection check
-  const walletConnected = status === 'connected' && Boolean(address) && chainId === 4202;
+  const walletConnected =
+    status === 'connected' && Boolean(address) && chainId === activeChain.id;
 
   const { data: res, refetch } = useQuery({
     queryKey: ['game', id, address],
@@ -92,7 +94,7 @@ export const GameCard = ({ id }: GameCardProps) => {
 
   const onJoinGame = async () => {
     if (!walletConnected) {
-      toast.error('Please connect wallet to Lisk Sepolia (Chain ID: 4202)');
+      toast.error(`Please connect wallet to ${activeChain.name} (Chain ID: ${activeChain.id})`);
       return;
     }
 

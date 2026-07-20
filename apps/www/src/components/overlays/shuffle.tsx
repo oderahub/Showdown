@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { firstShuffle, getMaskedCads, shuffle } from '~/lib/shuffle';
 import { errorHandler, getErrorAction } from '~/lib/utils';
@@ -67,8 +67,16 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
     };
   }, [data]);
 
+  // Generating the shuffle proof takes ~45s server-side with no intermediate
+  // feedback, so the button looks dead and invites repeat clicks. Each click
+  // used to fire another transaction, and the later ones failed with
+  // "nonce too low" once the first was mined.
+  const [isShuffling, setIsShuffling] = useState(false);
+
   const onShuffle = async () => {
-    const id = toast.loading('Shuffling Cards...');
+    if (isShuffling) return;
+    setIsShuffling(true);
+    const id = toast.loading('Shuffling cards — proving takes up to a minute...');
     try {
       const gameKey = await getGameKey(contractAddress);
       const totalShufflesRaw = await readContract(wagmiConfig, {
@@ -132,6 +140,8 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         description: suggestion ?? undefined,
         duration: 5000,
       });
+    } finally {
+      setIsShuffling(false);
     }
   };
 
@@ -153,8 +163,12 @@ export const ShuffleOverlay = ({ contractAddress, refresh }: OverlayProps) => {
         </div>
         <div className='flex w-full items-center justify-center font-poker text-3xl'>
           {!didPlayerShuffle ? (
-            <Button className='font-sans' onClick={onShuffle}>
-              Shuffle Cards
+            <Button
+              className='font-sans'
+              disabled={isShuffling}
+              onClick={onShuffle}
+            >
+              {isShuffling ? 'Generating proof…' : 'Shuffle Cards'}
             </Button>
           ) : (
             <>Waiting for other players...</>

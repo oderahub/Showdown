@@ -10,7 +10,9 @@ broadcast/
 node_modules
 # Docs
 docs/
-lib/
+# NOTE: lib/ is intentionally NOT ignored -- forge-std and openzeppelin-contracts
+# are tracked as git submodules (see .gitmodules and foundry.lock). Ignoring it
+# meant `git submodule add` silently did nothing and fresh clones could not build.
 # Dotenv file
 .env
 .env.local

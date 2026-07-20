@@ -6,7 +6,13 @@ import React, { useState } from 'react';
 
 import { useShuffle } from '~/lib/hooks';
 import { errorHandler } from '~/lib/utils';
-import { gameConfig, gameFactoryConfig, wagmiConfig } from '~/lib/viem';
+import {
+  gameConfig,
+  gameFactoryConfig,
+  revealVerifierAddress,
+  wagmiConfig,
+} from '~/lib/viem';
+import { activeChain } from '~/lib/viem/chains';
 
 import { readContract, waitForTransactionReceipt, simulateContract } from '@wagmi/core';
 import GoldBG from 'public/gold-bg.webp';
@@ -34,12 +40,13 @@ export const CreateGame = () => {
 
   const [gameId, setGameId] = useState<string>('');
 
-  // Strict wallet connection check: must be connected AND on Lisk Sepolia
-  const walletConnected = status === 'connected' && Boolean(address) && chainId === 4202;
+  // Strict wallet connection check: must be connected AND on the active chain
+  const walletConnected =
+    status === 'connected' && Boolean(address) && chainId === activeChain.id;
 
   const onCreate = async () => {
     if (!walletConnected) {
-      toast.error('Please connect wallet to Lisk Sepolia (Chain ID: 4202)');
+      toast.error(`Please connect wallet to ${activeChain.name} (Chain ID: ${activeChain.id})`);
       return;
     }
 
@@ -48,7 +55,6 @@ export const CreateGame = () => {
       console.log('[CreateGame] Wallet:', address, 'Chain:', chainId);
       console.log('[CreateGame] GameFactory:', gameFactoryConfig.address);
       const salt = keccak256(Buffer.from(crypto.randomUUID()));
-      const revealVerifier = '0x49cFFa95ffB77d398222393E3f0C4bFb5D996321';
       const key = await getKey(address);
 
       const hash = await writeContractAsync({
@@ -56,7 +62,7 @@ export const CreateGame = () => {
         functionName: 'createGame',
         args: [
           salt,
-          revealVerifier,
+          revealVerifierAddress,
           {
             addr: address,
             publicKey: {
@@ -94,7 +100,7 @@ export const CreateGame = () => {
 
   const onJoin = async () => {
     if (!walletConnected) {
-      toast.error('Please connect wallet to Lisk Sepolia (Chain ID: 4202)');
+      toast.error(`Please connect wallet to ${activeChain.name} (Chain ID: ${activeChain.id})`);
       return;
     }
 

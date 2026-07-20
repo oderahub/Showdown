@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Shield, AlertCircle } from 'lucide-react';
+import { FlaskConical, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,34 +14,32 @@ import {
 import { Button } from '~/components/ui/button';
 import { Checkbox } from '~/components/ui/checkbox';
 
-export const AgeVerificationModal = () => {
+export const TestnetNoticeModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAcknowledged, setHasAcknowledged] = useState(false);
   const [hasRead, setHasRead] = useState(false);
 
   useEffect(() => {
-    // Check if user has already verified
-    const verified = localStorage.getItem('age_verified');
-    const verifiedDate = localStorage.getItem('age_verified_date');
+    const acknowledged = localStorage.getItem('testnet_notice_ack');
+    const acknowledgedDate = localStorage.getItem('testnet_notice_ack_date');
 
-    if (!verified) {
+    if (!acknowledged) {
       setIsOpen(true);
     } else {
-      // Optional: Re-verify after 30 days
-      const daysSinceVerification = verifiedDate
-        ? (Date.now() - parseInt(verifiedDate)) / (1000 * 60 * 60 * 24)
+      const daysSince = acknowledgedDate
+        ? (Date.now() - parseInt(acknowledgedDate)) / (1000 * 60 * 60 * 24)
         : 0;
 
-      if (daysSinceVerification > 30) {
+      if (daysSince > 30) {
         setIsOpen(true);
       }
     }
   }, []);
 
   const handleConfirm = () => {
-    if (hasAgreed && hasRead) {
-      localStorage.setItem('age_verified', 'true');
-      localStorage.setItem('age_verified_date', Date.now().toString());
+    if (hasAcknowledged && hasRead) {
+      localStorage.setItem('testnet_notice_ack', 'true');
+      localStorage.setItem('testnet_notice_ack_date', Date.now().toString());
       localStorage.setItem('terms_accepted', 'true');
       setIsOpen(false);
     }
@@ -56,13 +54,13 @@ export const AgeVerificationModal = () => {
       >
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <Shield className="h-16 w-16 text-yellow-500" />
+            <FlaskConical className="h-16 w-16 text-yellow-500" />
           </div>
           <DialogTitle className="text-2xl text-center">
-            Age Verification Required
+            Testnet Preview
           </DialogTitle>
           <DialogDescription className="text-center">
-            This platform involves real cryptocurrency gambling
+            Showdown runs on a test network. Nothing here has monetary value.
           </DialogDescription>
         </DialogHeader>
 
@@ -71,12 +69,12 @@ export const AgeVerificationModal = () => {
             <div className="flex gap-2">
               <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-semibold text-yellow-500 mb-2">Legal Requirements</p>
+                <p className="font-semibold text-yellow-500 mb-2">Before you play</p>
                 <ul className="space-y-1 text-muted-foreground">
-                  <li>• You must be 18+ years old (21+ in some jurisdictions)</li>
-                  <li>• Online gambling must be legal in your location</li>
-                  <li>• This involves real cryptocurrency with financial risk</li>
-                  <li>• You are solely responsible for compliance with local laws</li>
+                  <li>• Stakes use free testnet tokens with no real-world value</li>
+                  <li>• The contracts are unaudited and provided as-is</li>
+                  <li>• Shuffle proofs are currently verified client-side, not on-chain</li>
+                  <li>• Game state may be reset without notice as development continues</li>
                 </ul>
               </div>
             </div>
@@ -85,15 +83,15 @@ export const AgeVerificationModal = () => {
           <div className="space-y-3">
             <div className="flex items-start space-x-2">
               <Checkbox
-                checked={hasAgreed}
-                id="age-confirm"
-                onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
+                checked={hasAcknowledged}
+                id="testnet-confirm"
+                onCheckedChange={(checked) => setHasAcknowledged(checked as boolean)}
               />
               <label
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                htmlFor="age-confirm"
+                htmlFor="testnet-confirm"
               >
-                I confirm that I am at least 18 years old (21+ where required) and that online gambling is legal in my jurisdiction
+                I understand this is an unaudited testnet preview and that no real money is at stake
               </label>
             </div>
 
@@ -123,16 +121,17 @@ export const AgeVerificationModal = () => {
         <DialogFooter>
           <Button
             className="w-full"
-            disabled={!hasAgreed || !hasRead}
+            disabled={!hasAcknowledged || !hasRead}
             size="lg"
             onClick={handleConfirm}
           >
-            I Confirm - Enter Platform
+            Enter Testnet Preview
           </Button>
         </DialogFooter>
 
         <p className="text-xs text-center text-muted-foreground mt-2">
-          By continuing, you acknowledge the risks involved in cryptocurrency gambling
+          Showdown is a skill-based poker game. This deployment is for testing and
+          demonstration only and does not offer real-money play.
         </p>
       </DialogContent>
     </Dialog>

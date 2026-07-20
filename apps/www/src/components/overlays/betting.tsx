@@ -16,6 +16,7 @@ import { Clock, AlertTriangle } from 'lucide-react';
 import { Overlay } from '../overlay';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { activeChain } from '~/lib/viem/chains';
 import {
     Dialog,
     DialogContent,
@@ -172,7 +173,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
             const amount = parseEther(betAmount);
 
             if (amount < callAmount) {
-                throw new Error(`Minimum bet is ${formatEther(callAmount)} ETH to call`);
+                throw new Error(`Minimum bet is ${formatEther(callAmount)} {activeChain.nativeCurrency.symbol} to call`);
             }
 
             const hash = await writeContractAsync({
@@ -251,14 +252,14 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
 
                 <div className='flex flex-col gap-2 text-center text-lg'>
                     <div className='text-neutral-300'>
-                        Highest Bet: <span className='font-bold text-yellow-500'>{formatEther(highestBet)} ETH</span>
+                        Highest Bet: <span className='font-bold text-yellow-500'>{formatEther(highestBet)} {activeChain.nativeCurrency.symbol}</span>
                     </div>
                     <div className='text-neutral-300'>
-                        Your Bet: <span className='font-bold text-green-500'>{formatEther(myBet)} ETH</span>
+                        Your Bet: <span className='font-bold text-green-500'>{formatEther(myBet)} {activeChain.nativeCurrency.symbol}</span>
                     </div>
                     {Boolean(callAmount > 0n) && (
                         <div className='text-neutral-300'>
-                            To Call: <span className='font-bold text-orange-500'>{formatEther(callAmount)} ETH</span>
+                            To Call: <span className='font-bold text-orange-500'>{formatEther(callAmount)} {activeChain.nativeCurrency.symbol}</span>
                         </div>
                     )}
                 </div>
@@ -338,7 +339,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                                     className='bg-green-600 font-poker text-lg hover:bg-green-700'
                                     onClick={onCall}
                                 >
-                                    Call {formatEther(callAmount)} ETH
+                                    Call {formatEther(callAmount)} {activeChain.nativeCurrency.symbol}
                                 </Button>
                             )}
 
@@ -346,7 +347,7 @@ export const BettingOverlay = ({ contractAddress, refresh }: OverlayProps) => {
                                 className='bg-blue-600 font-poker text-lg hover:bg-blue-700'
                                 onClick={onPlaceBet}
                             >
-                                Raise {betAmount} ETH
+                                Raise {betAmount} {activeChain.nativeCurrency.symbol}
                             </Button>
 
                             <Button
