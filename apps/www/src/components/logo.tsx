@@ -110,10 +110,10 @@ export const Logo = ({ className = '', showText = true }: LogoProps) => {
       {Boolean(showText) && (
         <div className="flex flex-col leading-none">
           <span className="bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 bg-clip-text font-poker text-4xl font-black uppercase tracking-tight text-transparent drop-shadow-lg">
-            ZK POKER
+            SHOWDOWN
           </span>
           <span className="mt-1 text-xs font-bold uppercase tracking-widest text-amber-400/90">
-            TEXAS HOLD&apos;EM
+            ZK TEXAS HOLD&apos;EM
           </span>
         </div>
       )}
