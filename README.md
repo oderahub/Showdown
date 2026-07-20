@@ -30,7 +30,7 @@ prototype is deployed and playable on **Lisk Sepolia** testnet.
 |---|---|
 | **Live demo** | [texas-seven.vercel.app](https://texas-seven.vercel.app) |
 | **Demo video** | [YouTube](https://www.youtube.com/watch?v=1lw5bxYwsPk) |
-| **Deployments** | Lisk Sepolia (original prototype) · Avalanche Fuji (migration in progress) |
+| **Deployments** | Lisk Sepolia (original prototype) · Avalanche Fuji (live — full hand played on-chain) |
 | **Next target** | Avalanche C-Chain — see [Roadmap](#-roadmap-avalanche-c-chain) |
 | **Stage** | Prototype. Testnet funds only, not audited, not for real-money play. |
 
@@ -215,9 +215,11 @@ affordable. This removes the last trust assumption in the protocol.
 The EIP-170 fix applies to every game built on Zypher's SDK, not just this one. Worth a PR to
 `zypher-game/uzkge`.
 
-**2. Deploy to Fuji, then C-Chain**
-Add the chain definitions (`apps/www/src/lib/viem/chains.ts`, `packages/contracts/foundry.toml`),
-deploy via the existing Foundry scripts, publish gas benchmarks for a full hand.
+**2. Deploy to Avalanche — Fuji done, C-Chain remaining**
+Fuji is live: the contracts are deployed (see [above](#deployed-contracts--avalanche-fuji)) and a
+full hand has been played and settled on-chain — create, join, shuffle with ZK proofs, bet, reveal,
+showdown, payout. What remains is promoting the same deployment to C-Chain mainnet and publishing
+gas benchmarks for a full hand at mainnet fees.
 
 **3. Session-key "buy-in" UX (the wallet-popup fix)**
 A full hand currently makes each player sign ~15 wallet transactions — join, shuffle, a bet per
