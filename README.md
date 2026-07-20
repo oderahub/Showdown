@@ -219,11 +219,35 @@ The EIP-170 fix applies to every game built on Zypher's SDK, not just this one. 
 Add the chain definitions (`apps/www/src/lib/viem/chains.ts`, `packages/contracts/foundry.toml`),
 deploy via the existing Foundry scripts, publish gas benchmarks for a full hand.
 
-**3. Tournament mode**
-Sponsor-funded prize-pool contracts, faucet chips for onboarding, Elo ratings, session-key UX so a
-hand doesn't require a wallet popup per action.
+**3. Session-key "buy-in" UX (the wallet-popup fix)**
+A full hand currently makes each player sign ~15 wallet transactions — join, shuffle, a bet per
+round, a reveal-token submission per round, chooseCards, settlement. That's the single biggest thing
+standing between this and something that feels like a game. The fix is a per-user in-app wallet:
 
-**4. Mainnet and first players**
+- On first connect, the user signs **one message**; that signature deterministically derives a
+  dedicated game wallet (non-custodial, recoverable on any device by re-signing, nothing stored
+  server-side).
+- The user **buys in once** — funding that wallet with chips in a single transaction from their EOA.
+- Every subsequent game action is signed **silently** by the game wallet: the deterministic
+  housekeeping (shuffle, reveal tokens, chooseCards) automatically, and each bet the moment the user
+  clicks it. Signing loses the popup, not the decision, and the blast radius is capped to the chips
+  deposited — never the user's main wallet.
+
+Net effect: **per-hand wallet popups drop from ~15 to zero.** The only wallet interactions left are
+buying in when chips run low and cashing out when leaving — front-loaded, not per-action.
+
+`Game.sol` already supports this with essentially no access-control change: every write function
+gates only on `msg.sender` matching the recorded player address, with no EOA-vs-contract assumption
+anywhere, so the game wallet simply registers as the player. The one contract change is `placeBet`,
+which today requires `msg.value` in native AVAX — moving bets onto an internal chip balance is what
+lets the buy-in happen once instead of per bet. Testnet uses **faucet chips** so onboarding costs
+nothing. Production graduates the derived wallet to an ERC-4337 smart account with scoped session
+keys and a paymaster, making housekeeping gasless.
+
+**4. Tournament mode**
+Sponsor-funded prize-pool contracts, Elo ratings, scheduled multi-table events.
+
+**5. Mainnet and first players**
 Community tournaments, targeting 100+ unique players.
 
 ---
