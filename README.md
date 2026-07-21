@@ -1,10 +1,11 @@
 <p align="center">
-<img src="./assets/logo-text.png" alt="Showdown" width="400px"/></p>
+  <img src="./assets/hat.png" alt="Showdown" width="96px"/>
+</p>
 
-<h1 align="center">Showdown</h1>
+<h1 align="center">SHOWDOWN</h1>
 
 <p align="center">
-  <strong>Fully on-chain Texas Hold'em with ZK-verified card shuffling</strong>
+  <strong>ZK Texas Hold'em — fully on-chain, with zero-knowledge card shuffling</strong>
 </p>
 
 <p align="center">
