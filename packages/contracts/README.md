@@ -1,6 +1,8 @@
-<p align="center"><img src="../../assets/logo-text.png" alt=""  width="400px"/></p>
+<p align="center"><img src="../../assets/hat.png" alt="Showdown" width="80px"/></p>
 
-Contracts for Texas Hold'em
+<h2 align="center">Showdown — Contracts</h2>
+
+Solidity contracts for Showdown: the ZK Texas Hold'em game engine, GameFactory, and Zypher shuffle/reveal verifiers.
 
 ## Deployed Address
 
