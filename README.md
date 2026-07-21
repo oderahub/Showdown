@@ -250,8 +250,10 @@ keys and a paymaster, making housekeeping gasless.
 **4. Tournament mode**
 Sponsor-funded prize-pool contracts, Elo ratings, scheduled multi-table events.
 
-**5. Mainnet and first players**
-Community tournaments, targeting 100+ unique players.
+**5. Mainnet & first players**
+Mainnet launch, plus a community game night with the Team1 Nigeria and Web3Bridge builders — a
+skill-based tournament with a sponsored prize pool (free entry, no player wagering, so it's an
+esports-style prize, not gambling) — driving 100+ unique players onto Avalanche.
 
 ---
 
